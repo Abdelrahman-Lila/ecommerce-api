@@ -1,0 +1,25 @@
+{
+  "name": "ecommerce-api",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "nodemon index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Abdelrahman-Lila/ecommerce-api.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "bugs": {
+    "url": "https://github.com/Abdelrahman-Lila/ecommerce-api/issues"
+  },
+  "homepage": "https://github.com/Abdelrahman-Lila/ecommerce-api#readme",
+  "dependencies": {
+    "express": "^5.2.1",
+    "nodemon": "^3.1.14"
+  }
+}
