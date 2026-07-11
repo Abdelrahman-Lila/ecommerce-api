@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "nodemon src/index.js"
+    "dev": "NODE_ENV=development nodemon src/index.js",
+    "prod": "NODE_ENV=production node src/index.js"
   },
   "repository": {
     "type": "git",
@@ -23,6 +24,7 @@
     "express": "^5.2.1",
     "express-async-handler": "^1.2.0",
     "mongoose": "^9.7.4",
+    "morgan": "^1.11.0",
     "slugify": "^1.6.9"
   },
   "devDependencies": {

@@ -1,6 +1,7 @@
 import Category from "../models/category.model.js";
 import slugify from "slugify";
 import asyncHandler from "express-async-handler";
+import ApiError from "../utils/api-error.js";
 
 const getCategories = asyncHandler(async (req, res) => {
   const page = req.query.page || 1;
@@ -10,18 +11,16 @@ const getCategories = asyncHandler(async (req, res) => {
   res.send({ page: page, data: categories });
 });
 
-const getCategory = asyncHandler(async (req, res) => {
+const getCategory = asyncHandler(async (req, res, next) => {
   const id = req.params.id;
   const category = await Category.findById(id);
   if (!category) {
-    res
-      .status(404)
-      .json({ status: "fail", message: "Requested category not found" });
+    return next(new ApiError("Requested category not found", 404));
   }
   res.status(200).json({ status: "success", data: category });
 });
 
-const createCategory = asyncHandler(async (req, res) => {
+const createCategory = asyncHandler(async (req, res, next) => {
   const categoryName = req.body.name;
 
   const category = await Category.create({
@@ -35,32 +34,28 @@ const createCategory = asyncHandler(async (req, res) => {
   });
 });
 
-const updateCategory = asyncHandler(async (req, res) => {
+const updateCategory = asyncHandler(async (req, res, next) => {
   const id = req.params.id;
   const name = req.body.name;
 
   const category = await Category.findByIdAndUpdate(
     { _id: id },
     { name: name, slug: slugify(name) },
-    { new: true },
+    { returnDocument: "after" },
   );
   if (!category) {
-    res
-      .status(404)
-      .json({ status: "fail", message: "Requested category not found" });
+    return next(new ApiError("Requested category not found", 404));
   }
   res
     .status(200)
     .json({ status: "success", message: "Updated category", data: category });
 });
 
-const deleteCategory = asyncHandler(async (req, res) => {
+const deleteCategory = asyncHandler(async (req, res, next) => {
   const id = req.params.id;
   const category = await Category.findByIdAndDelete(id);
   if (!category) {
-    res
-      .status(404)
-      .json({ status: "fail", message: "Requested category not found" });
+    return next(new ApiError("Requested category not found", 404));
   }
   res
     .status(200)

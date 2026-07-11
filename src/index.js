@@ -1,20 +1,36 @@
 import "dotenv/config";
 import express from "express";
-import mongoose from "mongoose";
+import morgan from "morgan";
+
+import connectDatabase from "./config/database.js";
 import categoriesRouter from "./routes/category.route.js";
+import ApiError from "./utils/api-error.js";
+import globalErrorHandler from "./middlewares/global-error-handler.middleware.js";
 
 const app = express();
 app.use(express.json());
 
-try {
-  await mongoose.connect(process.env.databaseUrl);
-  console.log("Connection successful");
-} catch (error) {
-  console.error(`Error: ${error}`);
+connectDatabase();
+
+if (process.env.NODE_ENV === "development") {
+  app.use(morgan("dev"));
 }
 
 app.use("/api/categories", categoriesRouter);
+app.use((req, res, next) => {
+  next(new ApiError(`This route is not found - "${req.originalUrl}"`, 404));
+});
 
-app.listen(process.env.port, () => {
+app.use(globalErrorHandler);
+
+const server = app.listen(process.env.port, () => {
   console.log(`Listening on port ${process.env.port}`);
+});
+
+process.on("unhandledRejection", (err) => {
+  console.error(`Rejection Error: ${err.name} | ${err.message}`);
+  server.close(() => {
+    console.error(`SHUTTING SERVER DOWN....`);
+    process.exit(1);
+  });
 });
