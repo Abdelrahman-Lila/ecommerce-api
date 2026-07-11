@@ -1,6 +1,7 @@
 import "dotenv/config";
 import express from "express";
 import mongoose from "mongoose";
+import categoriesRouter from "./routes/category.route.js";
 
 const app = express();
 app.use(express.json());
@@ -12,14 +13,7 @@ try {
   console.error(`Error: ${error}`);
 }
 
-app.get("/", (req, res) => {
-  res.send("Hello World");
-});
-
-app.post("/", (req, res) => {
-  const name = req.body;
-  res.json(name);
-});
+app.use("/api/categories", categoriesRouter);
 
 app.listen(process.env.port, () => {
   console.log(`Listening on port ${process.env.port}`);
