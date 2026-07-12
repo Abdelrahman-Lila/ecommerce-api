@@ -3,9 +3,10 @@ import express from "express";
 import morgan from "morgan";
 
 import connectDatabase from "./config/database.js";
-import categoriesRouter from "./routes/category.route.js";
 import ApiError from "./utils/api-error.js";
 import globalErrorHandler from "./middlewares/global-error-handler.middleware.js";
+import categoriesRouter from "./routes/category.route.js";
+import subCategoriesRouter from "./routes/subcategory.route.js";
 
 const app = express();
 app.use(express.json());
@@ -17,6 +18,8 @@ if (process.env.NODE_ENV === "development") {
 }
 
 app.use("/api/categories", categoriesRouter);
+app.use("/api/subcategories", subCategoriesRouter);
+
 app.use((req, res, next) => {
   next(new ApiError(`This route is not found - "${req.originalUrl}"`, 404));
 });
