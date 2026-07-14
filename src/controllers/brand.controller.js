@@ -2,13 +2,26 @@ import Brand from "../models/brand.model.js";
 import slugify from "slugify";
 import asyncHandler from "express-async-handler";
 import ApiError from "../utils/api-error.js";
+import ApiFeatures from "../utils/api-features.js";
 
 const getBrands = asyncHandler(async (req, res) => {
-  const page = req.query.page || 1;
-  const limit = req.query.limit || 5;
-  const skip = (page - 1) * limit;
-  const brands = await Brand.find({}).skip(skip).limit(limit);
-  res.send({ page: page, data: brands });
+  const numberofDocuments = await Brand.countDocuments();
+
+  let brandApi = new ApiFeatures(Brand.find(), req.query)
+    .paginate(numberofDocuments)
+    .sort()
+    .limitFields()
+    .keywordSearch("brands");
+
+  const { mongooseQuery, paginationResult } = brandApi;
+
+  const brands = await mongooseQuery;
+  res.send({
+    "Number of Brands": brands.length,
+    "current page": paginationResult.currentPage,
+    "Number of Pages": paginationResult.numberOfPages,
+    data: brands,
+  });
 });
 
 const getBrand = asyncHandler(async (req, res, next) => {
