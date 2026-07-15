@@ -6,7 +6,10 @@ const router = express.Router({ mergeParams: true });
 
 router
   .route("/")
-  .get(subCategoryController.getSubCategories)
+  .get(
+    subCategoryController.filterToSubCategorySearch,
+    subCategoryController.getSubCategories,
+  )
   .post(
     subCategoryController.setCategorytoBody,
     subCategoryValidator.createSubCategoryValidator,
@@ -21,11 +24,11 @@ router
   )
   .put(
     subCategoryValidator.updateSubCategoryValidator,
-    subCategoryController.updateCategory,
+    subCategoryController.updateSubCategory,
   )
   .delete(
     subCategoryValidator.deleteSubCategoryValidator,
-    subCategoryController.deleteCategory,
+    subCategoryController.deleteSubCategory,
   );
 
 export default router;
