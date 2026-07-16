@@ -1,7 +1,6 @@
 import express from "express";
 import * as productController from "../controllers/product.controller.js";
 import * as productValidator from "../utils/validators/product.validator.js";
-import productsRouter from "./product.route.js";
 const router = express.Router();
 
 router

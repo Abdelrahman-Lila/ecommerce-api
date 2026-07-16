@@ -5,13 +5,14 @@ import morgan from "morgan";
 import connectDatabase from "./config/database.js";
 import ApiError from "./utils/api-error.js";
 import globalErrorHandler from "./middlewares/global-error-handler.middleware.js";
+import authJWT from "./middlewares/auth-JWT.middleware.js";
 
 import categoriesRouter from "./routes/category.route.js";
 import subCategoriesRouter from "./routes/subcategory.route.js";
 import brandsRouter from "./routes/brand.route.js";
 import productsRouter from "./routes/product.route.js";
 import usersRouter from "./routes/user.route.js";
-import authJWT from "./middlewares/auth-JWT.middleware.js";
+import ordersRouter from "./routes/order.route.js";
 
 const app = express();
 app.use(express.json());
@@ -29,6 +30,7 @@ app.use("/api/brands", brandsRouter);
 app.use("/api/products", productsRouter);
 
 app.use("/api/users", usersRouter);
+app.use("/api/orders", ordersRouter);
 
 app.use((req, res, next) => {
   next(new ApiError(`This route is not found - "${req.originalUrl}"`, 404));

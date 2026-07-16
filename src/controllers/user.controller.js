@@ -11,7 +11,7 @@ const register = asyncHandler(async (req, res) => {
   const salt = 10;
   const hashedPassword = await bcrypt.hash(req.body.password, salt);
   req.body.password = hashedPassword;
-
+  req.body.name = `${req.body.firstName} ${req.body.lastName}`;
   const user = await User.create(req.body);
   const token = generateJWT(
     { email: user.email, id: user._id, isAdmin: user.isAdmin },
