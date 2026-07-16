@@ -11,6 +11,9 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: [true, "Last Name is Required"],
     },
+    name: {
+      type: String,
+    },
     email: {
       type: String,
       unique: true,
