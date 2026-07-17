@@ -23,10 +23,14 @@ const sendDevError = (err, res) => {
 };
 
 const sendProdError = (err, res) => {
-  return res.status(err.statusCode).json({
-    status: err.status,
-    message: err.message,
-  });
+  if (err.name === "UnauthorizedError") {
+    return res.status(401).json({ message: "This User is Unauthorized" });
+  } else {
+    return res.status(err.statusCode).json({
+      status: err.status,
+      message: err.message,
+    });
+  }
 };
 
 export default globalErrorHandler;

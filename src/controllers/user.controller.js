@@ -52,13 +52,33 @@ const login = asyncHandler(async (req, res, next) => {
   res.status(200).json({ message: "Logged in successfully", token: token });
 });
 
+const getUser = asyncHandler(async (req, res, next) => {
+  const user = await Model.findById(req.params.id);
+  if (!user) {
+    return next(new ApiError("Requested user not found", 404));
+  }
+  res.status(200).json({ status: "success", data: docuserument });
+});
+
 const getUsers = asyncHandler(async (req, res) => {
-  let users = await User.find();
-  res.status(201).json({
-    status: "success",
-    "Number of Users": users.length,
+  const numberofUsers = await User.countDocuments();
+
+  let userApi = new ApiFeatures(User.find(), req.query)
+    .paginate(numberofUsers)
+    .sort()
+    .filter()
+    .limitFields()
+    .keywordSearch("");
+
+  const { mongooseQuery, paginationResult } = userApi;
+
+  const users = await mongooseQuery;
+  res.send({
+    "Number of users": users.length,
+    "current page": paginationResult.currentPage,
+    "Number of Pages": paginationResult.numberOfPages,
     data: users,
   });
 });
 
-export { register, login, getUsers };
+export { register, login, getUser, getUsers };
