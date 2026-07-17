@@ -1,8 +1,4 @@
 import Category from "../models/category.model.js";
-import slugify from "slugify";
-import asyncHandler from "express-async-handler";
-import ApiError from "../utils/api-error.js";
-import ApiFeatures from "../utils/api-features.js";
 import * as factory from "./factory-handler.controller.js";
 
 const getCategories = factory.getAll(Category);

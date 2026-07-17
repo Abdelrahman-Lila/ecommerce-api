@@ -1,5 +1,4 @@
 import Product from "../models/product.model.js";
-import slugify from "slugify";
 import asyncHandler from "express-async-handler";
 import ApiError from "../utils/api-error.js";
 import ApiFeatures from "../utils/api-features.js";
