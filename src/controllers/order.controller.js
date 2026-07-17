@@ -6,20 +6,27 @@ import Order from "../models/order.model.js";
 import OrderItem from "../models/order-item.model.js";
 import * as factory from "./factory-handler.controller.js";
 
-const createOrder = asyncHandler(async (req, res) => {
-  let orderItemsIds = Promise.all(
+const createOrder = asyncHandler(async (req, res, next) => {
+  if (!req.auth?.id) {
+    return next(new ApiError("Authentication required", 401));
+  }
+
+  if (!Array.isArray(req.body.orderItems) || req.body.orderItems.length === 0) {
+    return next(new ApiError("orderItems are required", 400));
+  }
+
+  const orderItemsIdsResolved = await Promise.all(
     req.body.orderItems.map(async (orderItem) => {
-      let newOrderItem = await OrderItem.create({
+      const newOrderItem = await OrderItem.create({
         quantity: orderItem.quantity,
         product: orderItem.product,
       });
       return newOrderItem._id;
     }),
   );
-  const orderItemsIdsResolved = await orderItemsIds;
 
   const itemsPrices = await Promise.all(
-    await orderItemsIdsResolved.map(async (orderItemId) => {
+    orderItemsIdsResolved.map(async (orderItemId) => {
       const orderItem = await OrderItem.findById(orderItemId).populate(
         "product",
         "price",
@@ -32,6 +39,8 @@ const createOrder = asyncHandler(async (req, res) => {
 
   req.body.orderItems = orderItemsIdsResolved;
   req.body.totalPrice = totalPrice;
+  req.body.user = req.auth.id;
+
   const order = await Order.create(req.body);
   res.status(201).json({
     status: "success",
@@ -100,9 +109,11 @@ const deleteOrder = asyncHandler(async (req, res, next) => {
   const order = await Order.findByIdAndDelete(id);
 
   if (order) {
-    await order.orderItems.map(async (orderItemId) => {
-      await OrderItem.findByIdAndDelete(orderItemId);
-    });
+    await Promise.all(
+      order.orderItems.map((orderItemId) =>
+        OrderItem.findByIdAndDelete(orderItemId),
+      ),
+    );
     res
       .status(200)
       .json({ status: "success", message: `Order Deleted`, data: order });
@@ -111,4 +122,35 @@ const deleteOrder = asyncHandler(async (req, res, next) => {
   }
 });
 
-export { createOrder, getOrders, getOrder, updateOrder, deleteOrder };
+const getUserOrders = asyncHandler(async (req, res, next) => {
+  const userOrderList = await Order.find({ user: req.params.userid })
+    .populate({
+      path: "orderItems",
+      select: "-_id -__v",
+      populate: {
+        path: "product",
+        select: "title -_id",
+        populate: { path: "category", select: "name -_id" },
+      },
+    })
+    .populate("user", "name email -_id");
+
+  if (!userOrderList || userOrderList.length === 0) {
+    return next(new ApiError(`No Orders Found`, 404));
+  }
+
+  res.status(200).json({
+    status: "success",
+    message: `User Orders`,
+    data: userOrderList,
+  });
+});
+
+export {
+  createOrder,
+  getOrders,
+  getOrder,
+  updateOrder,
+  deleteOrder,
+  getUserOrders,
+};

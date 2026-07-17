@@ -1,6 +1,7 @@
 import validatorMiddleware from "../../middlewares/validation.middleware.js";
 import { check, body } from "express-validator";
 import slugify from "slugify";
+import mongoose from "mongoose";
 import Category from "../../models/category.model.js";
 import SubCategory from "../../models/subcategory.model.js";
 
@@ -74,8 +75,13 @@ const createProductValidator = [
       return value;
     })
     .isArray()
-    .isMongoId()
-    .withMessage("Invalid MongoDB Id Format")
+    .withMessage("subcategories must be an array")
+    .custom((subCategoriesQuery) => {
+      if (!subCategoriesQuery.every((id) => mongoose.isValidObjectId(id))) {
+        throw new Error("Invalid MongoDB Id Format");
+      }
+      return true;
+    })
     .custom(async (subCategoriesQuery) => {
       const subCategoriesFound = await SubCategory.find({
         _id: { $in: subCategoriesQuery },
