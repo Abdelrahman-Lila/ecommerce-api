@@ -46,7 +46,7 @@ const login = asyncHandler(async (req, res, next) => {
   }
   const token = generateJWT(
     { email: user.email, id: user._id, isAdmin: user.isAdmin },
-    "10m",
+    "1d",
   );
 
   res.status(200).json({ message: "Logged in successfully", token: token });

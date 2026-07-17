@@ -1,6 +1,8 @@
 import "dotenv/config";
 import express from "express";
 import morgan from "morgan";
+import path from "path";
+import { fileURLToPath } from "url";
 
 import connectDatabase from "./config/database.js";
 import ApiError from "./utils/api-error.js";
@@ -14,8 +16,13 @@ import productsRouter from "./routes/product.route.js";
 import usersRouter from "./routes/user.route.js";
 import ordersRouter from "./routes/order.route.js";
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 const app = express();
 app.use(express.json());
+console.log();
+app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
 
 connectDatabase();
 

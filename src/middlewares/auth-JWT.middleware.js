@@ -14,6 +14,7 @@ const authJWT = expressjwt({
   isRevoked: isRevoked,
 }).unless({
   path: [
+    { url: /\/uploads(.*)/, methods: ["GET"] },
     { url: /\/api\/categories(.*)/, methods: ["GET"] },
     { url: /\/api\/subcategories(.*)/, methods: ["GET"] },
     { url: /\/api\/brands(.*)/, methods: ["GET"] },

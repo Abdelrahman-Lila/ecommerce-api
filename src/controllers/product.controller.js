@@ -16,10 +16,55 @@ const getProduct = factory.getOne(Product);
 //     select: "name -_id",
 //   });
 
-const createProduct = factory.createOne(Product);
+// const createProduct = factory.createOne(Product);
+const createProduct = asyncHandler(async (req, res, next) => {
+  const fileName = req.file.filename;
+  const basePath = `${req.protocol}://${req.get("host")}/uploads/`;
+  req.body.imageCover = `${basePath}${fileName}`;
+
+  const product = await Product.create(req.body);
+  res.status(201).json({
+    status: "success",
+    message: "Created Product Successfully",
+    data: product,
+  });
+});
+
+const uploadImageGallery = asyncHandler(async (req, res, next) => {
+  const files = req.files;
+  let imagePaths = [];
+  const basePath = `${req.protocol}://${req.get("host")}/uploads/`;
+
+  files.map((file) => {
+    imagePaths.push(`${basePath}${file.filename}`);
+  });
+
+  const product = await Product.findByIdAndUpdate(
+    req.params.id,
+    { images: imagePaths },
+    {
+      returnDocument: "after",
+    },
+  );
+  if (!product) {
+    return next(new ApiError("Requested product not found", 404));
+  }
+  res.status(200).json({
+    status: "success",
+    message: "Uploaded images to Product Gallery",
+    data: product,
+  });
+});
 
 const updateProduct = factory.updateOne(Product);
 
 const deleteProduct = factory.deleteOne(Product);
 
-export { getProducts, getProduct, createProduct, updateProduct, deleteProduct };
+export {
+  getProducts,
+  getProduct,
+  createProduct,
+  updateProduct,
+  deleteProduct,
+  uploadImageGallery,
+};
