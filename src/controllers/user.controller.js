@@ -53,11 +53,11 @@ const login = asyncHandler(async (req, res, next) => {
 });
 
 const getUser = asyncHandler(async (req, res, next) => {
-  const user = await Model.findById(req.params.id);
+  const user = await User.findById(req.params.id);
   if (!user) {
     return next(new ApiError("Requested user not found", 404));
   }
-  res.status(200).json({ status: "success", data: docuserument });
+  res.status(200).json({ status: "success", data: user });
 });
 
 const getUsers = asyncHandler(async (req, res) => {

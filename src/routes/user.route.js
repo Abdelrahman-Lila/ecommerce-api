@@ -1,11 +1,12 @@
 import express from "express";
 import * as userController from "../controllers/user.controller.js";
+import requireAdmin from "../middlewares/require-admin.middleware.js";
 
 const router = express.Router();
 
-router.route("/").get(userController.getUsers);
+router.route("/").get(requireAdmin, userController.getUsers);
 
-router.route("/:id").get(userController.getUser);
+router.route("/:id").get(requireAdmin, userController.getUser);
 
 router.route("/register").post(userController.register);
 

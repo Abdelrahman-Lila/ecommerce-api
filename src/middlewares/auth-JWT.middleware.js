@@ -1,17 +1,9 @@
 import { expressjwt } from "express-jwt";
 import "dotenv/config";
 
-const isRevoked = async (req, token) => {
-  if (token.payload.isAdmin) {
-    return false;
-  }
-  return true;
-};
-
 const authJWT = expressjwt({
   secret: process.env.JWT_secret_key,
   algorithms: ["HS256"],
-  isRevoked: isRevoked,
 }).unless({
   path: [
     { url: /\/uploads(.*)/, methods: ["GET"] },
@@ -21,7 +13,6 @@ const authJWT = expressjwt({
     { url: /\/api\/products(.*)/, methods: ["GET"] },
     "/api/users/login",
     "/api/users/register",
-    "/api/orders",
   ],
 });
 

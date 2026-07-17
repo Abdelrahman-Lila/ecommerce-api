@@ -1,5 +1,6 @@
 import "dotenv/config";
 import express from "express";
+import cors from "cors";
 import morgan from "morgan";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -20,8 +21,8 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
+app.use(cors());
 app.use(express.json());
-console.log();
 app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
 
 connectDatabase();
@@ -45,8 +46,10 @@ app.use((req, res, next) => {
 
 app.use(globalErrorHandler);
 
-const server = app.listen(process.env.port, () => {
-  console.log(`Listening on port ${process.env.port}`);
+const port = process.env.PORT || process.env.port || 3000;
+
+const server = app.listen(port, () => {
+  console.log(`Listening on port ${port}`);
 });
 
 process.on("unhandledRejection", (err) => {

@@ -1,16 +1,20 @@
 import express from "express";
 import * as orderController from "../controllers/order.controller.js";
+import requireAdmin from "../middlewares/require-admin.middleware.js";
+
 const router = express.Router();
 
 router
   .route("/")
   .post(orderController.createOrder)
-  .get(orderController.getOrders);
+  .get(requireAdmin, orderController.getOrders);
 
 router
   .route("/:id")
-  .get(orderController.getOrder)
-  .put(orderController.updateOrder)
-  .delete(orderController.deleteOrder);
+  .get(requireAdmin, orderController.getOrder)
+  .put(requireAdmin, orderController.updateOrder)
+  .delete(requireAdmin, orderController.deleteOrder);
+
+router.route(`/get/userorders/:userid`).get(orderController.getUserOrders);
 
 export default router;
