@@ -1,0 +1,82 @@
+import { Link } from "react-router";
+import Badge from "../../../components/ui/Badge.jsx";
+import Button from "../../../components/ui/Button.jsx";
+import { Card } from "../../../components/ui/Card.jsx";
+import { classNames } from "../../../lib/classNames.js";
+import { getEntityId, readLabel } from "../lib/catalogFilters.js";
+
+const formatPrice = (value) =>
+  new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+    maximumFractionDigits: 0,
+  }).format(Number(value ?? 0));
+
+export default function ProductCard({ product, categoryName, brandName }) {
+  const productId = product?._id || product?.id;
+  const imageSource = product?.imageCover || product?.images?.[0] || "";
+  const categoryLabel = categoryName || readLabel(product?.category);
+  const brandLabel = brandName || readLabel(product?.brand);
+
+  return (
+    <Card className="group overflow-hidden p-0 transition hover:-translate-y-1 hover:shadow-[0_26px_60px_rgba(15,23,42,0.14)]">
+      <Link to={`/products/${productId}`} className="block">
+        <div className="aspect-[4/3] overflow-hidden bg-slate-100">
+          {imageSource ? (
+            <img
+              src={imageSource}
+              alt={product?.title || "Product image"}
+              className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+              loading="lazy"
+            />
+          ) : (
+            <div className="flex h-full items-center justify-center text-sm text-[var(--muted)]">
+              No image available
+            </div>
+          )}
+        </div>
+      </Link>
+
+      <div className="space-y-4 p-5">
+        <div className="space-y-2">
+          <div className="flex flex-wrap gap-2">
+            {categoryLabel ? (
+              <Badge variant="neutral">{categoryLabel}</Badge>
+            ) : null}
+            {brandLabel ? <Badge variant="primary">{brandLabel}</Badge> : null}
+          </div>
+          <h3 className="line-clamp-2 text-lg font-semibold tracking-tight text-[var(--text)]">
+            {product?.title}
+          </h3>
+          <p className="line-clamp-2 text-sm text-[var(--muted)]">
+            {product?.description}
+          </p>
+        </div>
+
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <p className="text-sm text-[var(--muted)]">Price</p>
+            <p className="text-xl font-semibold text-[var(--text)]">
+              {formatPrice(product?.price)}
+            </p>
+          </div>
+          <div className="text-right text-sm text-[var(--muted)]">
+            <p>{Number(product?.quantity ?? 0)} available</p>
+            {typeof product?.rating === "number" ? (
+              <p>{product.rating.toFixed(1)} rating</p>
+            ) : null}
+          </div>
+        </div>
+
+        <Button
+          as={Link}
+          to={`/products/${productId}`}
+          variant="secondary"
+          className="w-full"
+        >
+          View details
+        </Button>
+      </div>
+    </Card>
+  );
+}

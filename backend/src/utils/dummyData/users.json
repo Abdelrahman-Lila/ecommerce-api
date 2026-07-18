@@ -1,0 +1,62 @@
+[
+  {
+    "firstName": "John",
+    "lastName": "Doe",
+    "email": "john.doe@example.com",
+    "password": "1234",
+    "phone": "+15551234567",
+    "street": "123 Main Street",
+    "apartment": "Apt 4B",
+    "city": "New York",
+    "country": "United States",
+    "isAdmin": true
+  },
+  {
+    "firstName": "Jane",
+    "lastName": "Smith",
+    "email": "jane.smith@example.com",
+    "password": "1234",
+    "phone": "+15559876543",
+    "street": "456 Oak Avenue",
+    "apartment": "Suite 101",
+    "city": "Los Angeles",
+    "country": "United States",
+    "isAdmin": false
+  },
+  {
+    "firstName": "Ahmed",
+    "lastName": "Ali",
+    "email": "ahmed.ali@example.com",
+    "password": "1234",
+    "phone": "+201012345678",
+    "street": "9 El-Tahrir Street",
+    "apartment": "Floor 3, Flat 12",
+    "city": "Cairo",
+    "country": "Egypt",
+    "isAdmin": true
+  },
+  {
+    "firstName": "Alice",
+    "lastName": "Johnson",
+    "email": "alice.j@example.com",
+    "password": "1234",
+    "phone": "+442079460192",
+    "street": "",
+    "apartment": "",
+    "city": "",
+    "country": "",
+    "isAdmin": true
+  },
+  {
+    "firstName": "Emily",
+    "lastName": "Brown",
+    "email": "emily.brown@example.com",
+    "password": "1234",
+    "phone": "+61298765432",
+    "street": "12 Wallaby Way",
+    "apartment": "",
+    "city": "Sydney",
+    "country": "Australia",
+    "isAdmin": false
+  }
+]

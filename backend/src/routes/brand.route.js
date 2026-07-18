@@ -1,4 +1,5 @@
 import express from "express";
+import multer from "multer";
 import * as brandController from "../controllers/brand.controller.js";
 import * as brandValidator from "../utils/validators/brand.validator.js";
 const router = express.Router();
