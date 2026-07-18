@@ -15,10 +15,9 @@ const getProduct = factory.getOne(Product);
 //     select: "name -_id",
 //   });
 
-// const createProduct = factory.createOne(Product);
 const createProduct = asyncHandler(async (req, res, next) => {
   const fileName = req.file.filename;
-  const basePath = `${req.protocol}://${req.get("host")}/uploads/`;
+  const basePath = `${req.protocol}://${req.get("host")}/uploads/products/`;
   req.body.imageCover = `${basePath}${fileName}`;
 
   const product = await Product.create(req.body);

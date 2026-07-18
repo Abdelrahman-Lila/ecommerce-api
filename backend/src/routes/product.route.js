@@ -19,10 +19,11 @@ const storage = multer.diskStorage({
     if (isValid) {
       uploadError = null;
     }
-    cb(uploadError, "./uploads");
+    cb(uploadError, "./uploads/products");
   },
   filename: function (req, file, cb) {
-    const fileName = file.originalname.split(" ").join("-");
+    // const fileName = file.originalname.split(" ").join("-");
+    const fileName = req.body.title.toLowerCase().split(" ").join("-");
     const extension = FILE_TYPE_MAP[file.mimetype];
     cb(null, `${fileName}-${Date.now()}.${extension}`);
   },
