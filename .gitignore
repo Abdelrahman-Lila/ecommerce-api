@@ -67,6 +67,8 @@ web_modules/
 
 # dotenv environment variable files
 .env
+frontend/.env
+backend/.env
 .env.*
 !.env.example
 
@@ -142,6 +144,10 @@ vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 .vite/
 
-dummyData/
+backend/dummyData/
+frontend/dummyData/
 
-uploads/
+frontend/uploads/
+backend/uploads/
+
+.vscode
