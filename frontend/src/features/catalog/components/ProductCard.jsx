@@ -2,8 +2,8 @@ import { Link } from "react-router";
 import Badge from "../../../components/ui/Badge.jsx";
 import Button from "../../../components/ui/Button.jsx";
 import { Card } from "../../../components/ui/Card.jsx";
-import { classNames } from "../../../lib/classNames.js";
-import { getEntityId, readLabel } from "../lib/catalogFilters.js";
+import { readLabel } from "../lib/catalogFilters.js";
+import { useCart } from "../../cart/hooks/useCart.js";
 
 const formatPrice = (value) =>
   new Intl.NumberFormat("en-US", {
@@ -14,6 +14,7 @@ const formatPrice = (value) =>
 
 export default function ProductCard({ product, categoryName, brandName }) {
   const productId = product?._id || product?.id;
+  const { addItem } = useCart();
   const imageSource = product?.imageCover || product?.images?.[0] || "";
   const categoryLabel = categoryName || readLabel(product?.category);
   const brandLabel = brandName || readLabel(product?.brand);
@@ -75,6 +76,24 @@ export default function ProductCard({ product, categoryName, brandName }) {
           className="w-full"
         >
           View details
+        </Button>
+        <Button
+          className="w-full"
+          onClick={() =>
+            addItem({
+              id: productId,
+              title: product?.title,
+              price: product?.price,
+              image: imageSource,
+              quantity: 1,
+              stock: product?.quantity,
+              category: product?.category,
+              brand: product?.brand,
+            })
+          }
+          disabled={Number(product?.quantity ?? 0) <= 0}
+        >
+          Add to cart
         </Button>
       </div>
     </Card>
