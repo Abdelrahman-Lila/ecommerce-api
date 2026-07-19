@@ -7,13 +7,7 @@ import { Card } from "../../../components/ui/Card.jsx";
 import { useAuthSession } from "../../auth/hooks/useAuthSession.js";
 import { useCart } from "../hooks/useCart.js";
 import CartItemRow from "../components/CartItemRow.jsx";
-
-const formatPrice = (value) =>
-  new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-    maximumFractionDigits: 0,
-  }).format(Number(value ?? 0));
+import { formatCurrency } from "../../../lib/currency.js";
 
 export default function CartPage() {
   const navigate = useNavigate();
@@ -79,7 +73,7 @@ export default function CartPage() {
           <div>
             <p className="text-sm text-[var(--muted)]">Subtotal</p>
             <p className="text-3xl font-semibold text-[var(--text)]">
-              {formatPrice(subtotal)}
+              {formatCurrency(subtotal)}
             </p>
           </div>
 

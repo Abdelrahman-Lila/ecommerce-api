@@ -24,9 +24,9 @@ export default function SiteHeader({ links = [], className }) {
           className="flex items-center gap-3 font-semibold tracking-tight"
         >
           <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[var(--primary)] text-sm text-white shadow-sm">
-            EC
+            ML
           </span>
-          <span className="text-base">E-commerce Core</span>
+          <span className="text-base">MarketLane</span>
         </Link>
 
         <nav className="hidden items-center gap-2 md:flex">
@@ -47,6 +47,11 @@ export default function SiteHeader({ links = [], className }) {
           <Button as={Link} to="/cart" variant="secondary" size="sm">
             Cart {itemCount ? `(${itemCount})` : ""}
           </Button>
+          {session.isAuthenticated ? (
+            <Button as={Link} to="/orders" variant="ghost" size="sm">
+              Orders
+            </Button>
+          ) : null}
           <Badge variant={session.isAuthenticated ? "success" : "neutral"}>
             {session.isAuthenticated
               ? session.isAdmin

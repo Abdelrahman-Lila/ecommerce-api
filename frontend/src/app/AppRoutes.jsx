@@ -12,6 +12,8 @@ import RegisterPage from "../features/auth/pages/RegisterPage.jsx";
 import { PublicOnlyRoute, RequireAuth } from "./components/RouteGuard.jsx";
 import CartPage from "../features/cart/pages/CartPage.jsx";
 import CheckoutPage from "../features/checkout/pages/CheckoutPage.jsx";
+import CheckoutSuccessPage from "../features/checkout/pages/CheckoutSuccessPage.jsx";
+import OrdersPage from "../features/orders/pages/OrdersPage.jsx";
 
 export default function AppRoutes() {
   return (
@@ -35,6 +37,8 @@ export default function AppRoutes() {
       <Route element={<RequireAuth />}>
         <Route element={<ProtectedLayout />}>
           <Route path="checkout" element={<CheckoutPage />} />
+          <Route path="checkout/success" element={<CheckoutSuccessPage />} />
+          <Route path="orders" element={<OrdersPage />} />
         </Route>
       </Route>
 

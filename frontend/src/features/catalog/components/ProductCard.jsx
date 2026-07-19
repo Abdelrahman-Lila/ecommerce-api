@@ -4,13 +4,7 @@ import Button from "../../../components/ui/Button.jsx";
 import { Card } from "../../../components/ui/Card.jsx";
 import { readLabel } from "../lib/catalogFilters.js";
 import { useCart } from "../../cart/hooks/useCart.js";
-
-const formatPrice = (value) =>
-  new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-    maximumFractionDigits: 0,
-  }).format(Number(value ?? 0));
+import { formatCurrency } from "../../../lib/currency.js";
 
 export default function ProductCard({ product, categoryName, brandName }) {
   const productId = product?._id || product?.id;
@@ -22,12 +16,12 @@ export default function ProductCard({ product, categoryName, brandName }) {
   return (
     <Card className="group overflow-hidden p-0 transition hover:-translate-y-1 hover:shadow-[0_26px_60px_rgba(15,23,42,0.14)]">
       <Link to={`/products/${productId}`} className="block">
-        <div className="aspect-[4/3] overflow-hidden bg-slate-100">
+        <div className="flex aspect-[4/3] items-center justify-center overflow-hidden bg-slate-100">
           {imageSource ? (
             <img
               src={imageSource}
               alt={product?.title || "Product image"}
-              className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+              className="h-full w-full object-contain p-2"
               loading="lazy"
             />
           ) : (
@@ -58,7 +52,7 @@ export default function ProductCard({ product, categoryName, brandName }) {
           <div>
             <p className="text-sm text-[var(--muted)]">Price</p>
             <p className="text-xl font-semibold text-[var(--text)]">
-              {formatPrice(product?.price)}
+              {formatCurrency(product?.price)}
             </p>
           </div>
           <div className="text-right text-sm text-[var(--muted)]">

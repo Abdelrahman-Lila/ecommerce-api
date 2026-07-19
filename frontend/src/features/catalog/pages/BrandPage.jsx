@@ -31,7 +31,6 @@ export default function BrandPage() {
     () =>
       getCatalogFiltersFromSearchParams(searchParams, {
         brand: brandId,
-        page: 1,
       }),
     [brandId, searchParams],
   );

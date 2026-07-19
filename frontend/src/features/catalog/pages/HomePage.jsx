@@ -64,6 +64,7 @@ export default function HomePage() {
             entities={categories}
             type="Category"
             getTo={(entity) => `/categories/${entity?._id || entity?.id}`}
+            showImage={false}
           />
         ) : (
           <EmptyState

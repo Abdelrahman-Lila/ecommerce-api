@@ -12,6 +12,7 @@ import Badge from "../../../components/ui/Badge.jsx";
 import { useAuthSession } from "../../auth/hooks/useAuthSession.js";
 import { useCart } from "../../cart/hooks/useCart.js";
 import { useCreateOrderMutation } from "../../orders/hooks/useOrderMutations.js";
+import { saveLatestOrderConfirmation } from "../lib/confirmationStorage.js";
 import {
   checkoutDefaultValues,
   checkoutSchema,
@@ -52,8 +53,18 @@ export default function CheckoutPage() {
       const result = await createOrderMutation.mutateAsync(payload);
 
       if (result) {
+        saveLatestOrderConfirmation({
+          ...result,
+          lineItems: items.map((item) => ({
+            id: item.id,
+            title: item.title,
+            price: item.price,
+            quantity: item.quantity,
+            image: item.image,
+          })),
+        });
         clearCart();
-        navigate("/", { replace: true });
+        navigate("/checkout/success", { replace: true });
       }
     } catch {
       // Mutation state already captures the API error for the UI.

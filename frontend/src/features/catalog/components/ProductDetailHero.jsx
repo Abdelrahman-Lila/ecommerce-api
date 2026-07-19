@@ -4,35 +4,19 @@ import { Card } from "../../../components/ui/Card.jsx";
 import { getEntityId, readLabel } from "../lib/catalogFilters.js";
 import { Link } from "react-router";
 import { useCart } from "../../cart/hooks/useCart.js";
-
-const formatPrice = (value) =>
-  new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-    maximumFractionDigits: 0,
-  }).format(Number(value ?? 0));
+import ProductGallery from "./ProductGallery.jsx";
+import { formatCurrency } from "../../../lib/currency.js";
 
 export default function ProductDetailHero({ product, category, brand }) {
   const { addItem } = useCart();
-  const imageSource = product?.imageCover || product?.images?.[0] || "";
   const categoryId = getEntityId(product?.category || category);
   const brandId = getEntityId(product?.brand || brand);
 
   return (
     <Card className="overflow-hidden p-0">
       <div className="grid gap-0 lg:grid-cols-[1.1fr_0.9fr]">
-        <div className="aspect-[4/3] bg-slate-100 lg:aspect-auto lg:min-h-[520px]">
-          {imageSource ? (
-            <img
-              src={imageSource}
-              alt={product?.title || "Product image"}
-              className="h-full w-full object-cover"
-            />
-          ) : (
-            <div className="flex h-full items-center justify-center text-sm text-[var(--muted)]">
-              No image available
-            </div>
-          )}
+        <div className="p-4 sm:p-6">
+          <ProductGallery product={product} />
         </div>
 
         <div className="flex flex-col justify-between gap-8 p-6 sm:p-8">
@@ -56,7 +40,7 @@ export default function ProductDetailHero({ product, category, brand }) {
               <div>
                 <p className="text-sm text-[var(--muted)]">Price</p>
                 <p className="text-2xl font-semibold text-[var(--text)]">
-                  {formatPrice(product?.price)}
+                  {formatCurrency(product?.price)}
                 </p>
               </div>
               <div>
@@ -87,7 +71,7 @@ export default function ProductDetailHero({ product, category, brand }) {
                   id: product?._id || product?.id,
                   title: product?.title,
                   price: product?.price,
-                  image: imageSource,
+                  image: product?.imageCover || product?.images?.[0] || "",
                   quantity: 1,
                   stock: product?.quantity,
                   category: product?.category,

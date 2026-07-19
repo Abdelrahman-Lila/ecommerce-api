@@ -3,7 +3,11 @@ export const publicNavItems = [
   { to: "/products", label: "Products" },
 ];
 
-export const protectedNavItems = [{ to: "/checkout", label: "Checkout" }];
+export const protectedNavItems = [
+  { to: "/cart", label: "Cart" },
+  { to: "/checkout", label: "Checkout" },
+  { to: "/orders", label: "Orders" },
+];
 
 export const authNavItems = [
   { to: "/login", label: "Sign in" },
@@ -89,6 +93,13 @@ export const customerRoutes = [
     title: "Checkout",
     description:
       "A protected order submission flow that will post to the existing order endpoint.",
+  },
+  {
+    path: "/checkout/success",
+    area: "Cart and checkout",
+    title: "Order confirmed",
+    description:
+      "A protected confirmation page for a recently submitted order.",
   },
   {
     path: "/orders",
