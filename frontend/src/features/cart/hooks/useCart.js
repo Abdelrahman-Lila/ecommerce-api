@@ -11,16 +11,31 @@ const readCart = () => {
   }
 };
 
+const normalizeItem = (item) => {
+  const id = item?.id ?? item?.productId ?? item?._id;
+
+  return {
+    id,
+    title: item?.title ?? "Untitled item",
+    price: Number(item?.price ?? 0),
+    image: item?.image ?? item?.imageCover ?? "",
+    quantity: Number(item?.quantity ?? 1),
+    stock: Number(item?.stock ?? item?.quantity ?? 0),
+    category: item?.category ?? null,
+    brand: item?.brand ?? null,
+  };
+};
+
 const writeCart = (items) => {
   localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(items));
   window.dispatchEvent(new Event(CART_EVENT_NAME));
 };
 
 export const useCart = () => {
-  const [items, setItems] = useState(() => readCart());
+  const [items, setItems] = useState(() => readCart().map(normalizeItem));
 
   useEffect(() => {
-    const syncCart = () => setItems(readCart());
+    const syncCart = () => setItems(readCart().map(normalizeItem));
 
     window.addEventListener("storage", syncCart);
     window.addEventListener(CART_EVENT_NAME, syncCart);
@@ -48,21 +63,50 @@ export const useCart = () => {
   const setCartItems = (nextItems) => {
     const resolvedItems =
       typeof nextItems === "function" ? nextItems(readCart()) : nextItems;
-    writeCart(resolvedItems);
-    setItems(resolvedItems);
+    const normalizedItems = resolvedItems.map(normalizeItem);
+    writeCart(normalizedItems);
+    setItems(normalizedItems);
   };
 
   const addItem = (item) => {
     const currentItems = readCart();
-    const nextItems = [...currentItems, item];
+    const nextItem = normalizeItem(item);
+    const existingItem = currentItems.find(
+      (current) => current.id === nextItem.id,
+    );
+
+    const nextItems = existingItem
+      ? currentItems.map((current) =>
+          current.id === nextItem.id
+            ? {
+                ...current,
+                quantity: Math.min(
+                  (current.quantity ?? 0) + nextItem.quantity,
+                  current.stock || Infinity,
+                ),
+              }
+            : current,
+        )
+      : [...currentItems, nextItem];
+
     writeCart(nextItems);
     setItems(nextItems);
   };
 
   const updateItemQuantity = (itemId, quantity) => {
-    const nextItems = readCart().map((item) =>
-      item.id === itemId ? { ...item, quantity } : item,
-    );
+    const nextItems = readCart()
+      .map((item) =>
+        item.id === itemId
+          ? {
+              ...item,
+              quantity: Math.max(
+                1,
+                Math.min(Number(quantity), item.stock || Number(quantity)),
+              ),
+            }
+          : item,
+      )
+      .filter(Boolean);
     writeCart(nextItems);
     setItems(nextItems);
   };

@@ -3,6 +3,7 @@ import Button from "../../../components/ui/Button.jsx";
 import { Card } from "../../../components/ui/Card.jsx";
 import { getEntityId, readLabel } from "../lib/catalogFilters.js";
 import { Link } from "react-router";
+import { useCart } from "../../cart/hooks/useCart.js";
 
 const formatPrice = (value) =>
   new Intl.NumberFormat("en-US", {
@@ -12,6 +13,7 @@ const formatPrice = (value) =>
   }).format(Number(value ?? 0));
 
 export default function ProductDetailHero({ product, category, brand }) {
+  const { addItem } = useCart();
   const imageSource = product?.imageCover || product?.images?.[0] || "";
   const categoryId = getEntityId(product?.category || category);
   const brandId = getEntityId(product?.brand || brand);
@@ -79,6 +81,23 @@ export default function ProductDetailHero({ product, category, brand }) {
           </div>
 
           <div className="flex flex-wrap gap-3">
+            <Button
+              onClick={() =>
+                addItem({
+                  id: product?._id || product?.id,
+                  title: product?.title,
+                  price: product?.price,
+                  image: imageSource,
+                  quantity: 1,
+                  stock: product?.quantity,
+                  category: product?.category,
+                  brand: product?.brand,
+                })
+              }
+              disabled={Number(product?.quantity ?? 0) <= 0}
+            >
+              Add to cart
+            </Button>
             <Button
               as={Link}
               to={categoryId ? `/categories/${categoryId}` : "/products"}

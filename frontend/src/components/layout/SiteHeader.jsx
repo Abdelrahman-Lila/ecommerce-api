@@ -3,9 +3,13 @@ import Badge from "../ui/Badge.jsx";
 import Button from "../ui/Button.jsx";
 import { classNames } from "../../lib/classNames.js";
 import { useAuthSession } from "../../features/auth/hooks/useAuthSession.js";
+import { useCart } from "../../features/cart/hooks/useCart.js";
+import { useLogout } from "../../features/auth/hooks/useAuthMutations.js";
 
 export default function SiteHeader({ links = [], className }) {
   const session = useAuthSession();
+  const { itemCount } = useCart();
+  const logout = useLogout();
 
   return (
     <header
@@ -40,6 +44,9 @@ export default function SiteHeader({ links = [], className }) {
         </nav>
 
         <div className="flex items-center gap-2">
+          <Button as={Link} to="/cart" variant="secondary" size="sm">
+            Cart {itemCount ? `(${itemCount})` : ""}
+          </Button>
           <Badge variant={session.isAuthenticated ? "success" : "neutral"}>
             {session.isAuthenticated
               ? session.isAdmin
@@ -51,7 +58,11 @@ export default function SiteHeader({ links = [], className }) {
             <Button as={Link} to="/login" size="sm">
               Sign in
             </Button>
-          ) : null}
+          ) : (
+            <Button variant="ghost" size="sm" onClick={logout}>
+              Sign out
+            </Button>
+          )}
         </div>
       </div>
     </header>

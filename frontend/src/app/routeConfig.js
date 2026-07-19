@@ -3,10 +3,11 @@ export const publicNavItems = [
   { to: "/products", label: "Products" },
 ];
 
-export const protectedNavItems = [
-  { to: "/cart", label: "Cart" },
-  { to: "/checkout", label: "Checkout" },
-  { to: "/orders", label: "Orders" },
+export const protectedNavItems = [{ to: "/checkout", label: "Checkout" }];
+
+export const authNavItems = [
+  { to: "/login", label: "Sign in" },
+  { to: "/register", label: "Register" },
 ];
 
 export const adminNavItems = [
