@@ -3,17 +3,12 @@ import asyncHandler from "express-async-handler";
 import ApiError from "../utils/api-error.js";
 import ApiFeatures from "../utils/api-features.js";
 import * as factory from "./factory-handler.controller.js";
+import fs from "fs";
+import path from "path";
 
 const getProducts = factory.getAll(Product, "products");
-// productApi.mongooseQuery
-//   .populate({ path: "category", select: "name -_id" })
-//   .populate({ path: "subcategories", select: "name -_id" });
 
 const getProduct = factory.getOne(Product);
-// .populate({
-//     path: "category",
-//     select: "name -_id",
-//   });
 
 const createProduct = asyncHandler(async (req, res, next) => {
   const fileName = req.file.filename;
@@ -56,7 +51,35 @@ const uploadImageGallery = asyncHandler(async (req, res, next) => {
 
 const updateProduct = factory.updateOne(Product);
 
-const deleteProduct = factory.deleteOne(Product);
+// const deleteProduct = factory.deleteOne(Product);
+const deleteProduct = asyncHandler(async (req, res, next) => {
+  const { id } = req.params;
+  const product = await Product.findById(id);
+
+  if (!product) {
+    return next(new ApiError("Requested product not found", 404));
+  }
+
+  if (product.imageCover) {
+    const relativePath =
+      product.imageCover.split("/uploads/products")[1] || product.imageCover;
+    const absolutePath = path.join(
+      process.cwd(),
+      "uploads/products",
+      relativePath,
+    );
+
+    if (fs.existsSync(absolutePath)) {
+      fs.unlinkSync(absolutePath);
+    }
+  }
+  await product.deleteOne();
+
+  res.status(200).json({
+    status: "success",
+    message: "Product and associated image deleted successfully",
+  });
+});
 
 export {
   getProducts,

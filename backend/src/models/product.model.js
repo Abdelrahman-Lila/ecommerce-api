@@ -36,12 +36,12 @@ const productSchema = new mongoose.Schema(
     priceAfterDiscount: {
       type: Number,
     },
-    colors: [String],
+    colors: [{ type: String }],
     imageCover: {
       type: String,
       required: true,
     },
-    images: [String],
+    images: [{ type: String }],
     category: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Category",
@@ -69,6 +69,14 @@ const productSchema = new mongoose.Schema(
   },
   { timestamps: true },
 );
+
+productSchema.pre(/^find/, function () {
+  this.populate([
+    { path: "category", select: "name -_id" },
+    { path: "subcategories", select: "name -_id" },
+    { path: "brand", select: "name -_id" },
+  ]);
+});
 
 const productModel = new mongoose.model("Product", productSchema);
 

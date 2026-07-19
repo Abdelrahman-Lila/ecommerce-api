@@ -32,8 +32,12 @@ const deleteBrand = asyncHandler(async (req, res, next) => {
   }
 
   if (brand.image) {
-    const relativePath = brand.image.split("/uploads/")[1] || brand.image;
-    const absolutePath = path.join(process.cwd(), "uploads", relativePath);
+    const relativePath = brand.image.split("/uploads/brands")[1] || brand.image;
+    const absolutePath = path.join(
+      process.cwd(),
+      "uploads/brands",
+      relativePath,
+    );
 
     if (fs.existsSync(absolutePath)) {
       fs.unlinkSync(absolutePath);

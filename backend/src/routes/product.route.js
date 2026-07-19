@@ -1,6 +1,7 @@
 import express from "express";
 import multer from "multer";
 import ApiError from "../utils/api-error.js";
+import Product from "../models/product.model.js";
 import * as productController from "../controllers/product.controller.js";
 import * as productValidator from "../utils/validators/product.validator.js";
 
@@ -21,9 +22,9 @@ const storage = multer.diskStorage({
     }
     cb(uploadError, "./uploads/products");
   },
-  filename: function (req, file, cb) {
-    // const fileName = file.originalname.split(" ").join("-");
-    const fileName = req.body.title.toLowerCase().split(" ").join("-");
+  filename: function async(req, file, cb) {
+    const fileName = file.originalname.split(" ").join("-");
+    // const fileName = req.body.title.toLowerCase().split(" ").join("-");
     const extension = FILE_TYPE_MAP[file.mimetype];
     cb(null, `${fileName}-${Date.now()}.${extension}`);
   },

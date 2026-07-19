@@ -43,7 +43,20 @@ const createProductValidator = [
       }
       return true;
     }),
-  check("colors").optional().isArray().withMessage("colors must be an array"),
+  check("colors")
+    .optional()
+    .customSanitizer((value) => {
+      if (typeof value === "string") {
+        try {
+          return JSON.parse(value);
+        } catch {
+          return value.split(",").map((id) => id.trim());
+        }
+      }
+      return value;
+    })
+    .isArray()
+    .withMessage("colors must be an array"),
   check("imageCover").custom((value, { req }) => {
     if (!req.file) {
       throw Error("ImageCover must be provided");
