@@ -1,13 +1,7 @@
 import Button from "../../../components/ui/Button.jsx";
 import Badge from "../../../components/ui/Badge.jsx";
 import { Link } from "react-router";
-
-const formatPrice = (value) =>
-  new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-    maximumFractionDigits: 0,
-  }).format(Number(value ?? 0));
+import { formatCurrency } from "../../../lib/currency.js";
 
 export default function CartItemRow({
   item,
@@ -40,13 +34,13 @@ export default function CartItemRow({
               {item.title}
             </Link>
             <p className="text-sm text-[var(--muted)]">
-              {formatPrice(item.price)} each
+              {formatCurrency(item.price)} each
             </p>
           </div>
           <Badge variant="neutral">Qty {item.quantity}</Badge>
         </div>
         <p className="text-sm text-[var(--muted)]">
-          Line total: {formatPrice(item.price * item.quantity)}
+          Line total: {formatCurrency(item.price * item.quantity)}
         </p>
       </div>
 

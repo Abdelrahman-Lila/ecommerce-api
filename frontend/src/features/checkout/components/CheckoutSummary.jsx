@@ -1,12 +1,6 @@
 import { Card } from "../../../components/ui/Card.jsx";
 import Badge from "../../../components/ui/Badge.jsx";
-
-const formatPrice = (value) =>
-  new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-    maximumFractionDigits: 0,
-  }).format(Number(value ?? 0));
+import { formatCurrency } from "../../../lib/currency.js";
 
 export default function CheckoutSummary({ items = [], subtotal }) {
   return (
@@ -34,7 +28,7 @@ export default function CheckoutSummary({ items = [], subtotal }) {
               <p className="text-[var(--muted)]">Qty {item.quantity}</p>
             </div>
             <p className="font-medium text-[var(--text)]">
-              {formatPrice(item.price * item.quantity)}
+              {formatCurrency(item.price * item.quantity)}
             </p>
           </div>
         ))}
@@ -44,7 +38,7 @@ export default function CheckoutSummary({ items = [], subtotal }) {
         <div className="flex items-center justify-between gap-3">
           <p className="text-sm text-[var(--muted)]">Total</p>
           <p className="text-2xl font-semibold text-[var(--text)]">
-            {formatPrice(subtotal)}
+            {formatCurrency(subtotal)}
           </p>
         </div>
       </div>

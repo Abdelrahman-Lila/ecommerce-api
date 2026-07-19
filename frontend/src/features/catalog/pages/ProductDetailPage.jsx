@@ -5,6 +5,8 @@ import ErrorState from "../../../components/ui/ErrorState.jsx";
 import EmptyState from "../../../components/ui/EmptyState.jsx";
 import Button from "../../../components/ui/Button.jsx";
 import ProductDetailHero from "../components/ProductDetailHero.jsx";
+import RelatedProductsSection from "../components/RelatedProductsSection.jsx";
+import { useProducts } from "../hooks/useCatalogQueries.js";
 import {
   useBrand,
   useCategory,
@@ -22,11 +24,23 @@ export default function ProductDetailPage() {
 
   const categoryQuery = useCategory(categoryId);
   const brandQuery = useBrand(brandId);
+  const relatedParams = product
+    ? {
+        limit: 8,
+        sort: "-createdAt",
+        ...(categoryId ? { category: categoryId } : {}),
+        ...(brandId ? { brand: brandId } : {}),
+      }
+    : null;
+  const relatedProductsQuery = useProducts(relatedParams, {
+    enabled: Boolean(relatedParams),
+  });
 
   if (
     productQuery.isLoading ||
     categoryQuery.isLoading ||
-    brandQuery.isLoading
+    brandQuery.isLoading ||
+    relatedProductsQuery.isLoading
   ) {
     return (
       <PageShell className="py-8 sm:py-10">
@@ -35,11 +49,21 @@ export default function ProductDetailPage() {
     );
   }
 
-  if (productQuery.isError || categoryQuery.isError || brandQuery.isError) {
+  if (
+    productQuery.isError ||
+    categoryQuery.isError ||
+    brandQuery.isError ||
+    relatedProductsQuery.isError
+  ) {
     return (
       <PageShell className="py-8 sm:py-10">
         <ErrorState
-          error={productQuery.error || categoryQuery.error || brandQuery.error}
+          error={
+            productQuery.error ||
+            categoryQuery.error ||
+            brandQuery.error ||
+            relatedProductsQuery.error
+          }
           onRetry={() => window.location.reload()}
         />
       </PageShell>
@@ -79,6 +103,14 @@ export default function ProductDetailPage() {
         product={product}
         category={categoryQuery.data}
         brand={brandQuery.data}
+      />
+
+      <RelatedProductsSection
+        eyebrow="Related products"
+        title="More like this"
+        description="We pulled matching products from the same category or brand using the catalog API."
+        query={relatedProductsQuery}
+        currentProductId={product?._id || product?.id}
       />
     </PageShell>
   );

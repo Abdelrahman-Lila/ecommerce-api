@@ -83,10 +83,11 @@ export const useBrand = (brandId) =>
     enabled: Boolean(brandId),
   });
 
-export const useProducts = (params) =>
+export const useProducts = (params, options = {}) =>
   useQuery({
     queryKey: catalogKeys.products(params),
     queryFn: () => getProducts(params),
+    ...options,
   });
 
 export const useProduct = (productId) =>

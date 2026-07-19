@@ -17,6 +17,7 @@ import {
   useBrands,
   useCategories,
   useProducts,
+  useSubcategories,
 } from "../hooks/useCatalogQueries.js";
 
 export default function ProductsPage() {
@@ -34,6 +35,7 @@ export default function ProductsPage() {
 
   const categoriesQuery = useCategories({ limit: 100, sort: "name" });
   const brandsQuery = useBrands({ limit: 100, sort: "name" });
+  const subcategoriesQuery = useSubcategories({ limit: 100, sort: "name" });
   const productsQuery = useProducts(queryParams);
 
   const handleApplyFilters = (values) => {
@@ -66,6 +68,7 @@ export default function ProductsPage() {
   if (
     categoriesQuery.isLoading ||
     brandsQuery.isLoading ||
+    subcategoriesQuery.isLoading ||
     productsQuery.isLoading
   ) {
     return (
@@ -75,12 +78,20 @@ export default function ProductsPage() {
     );
   }
 
-  if (categoriesQuery.isError || brandsQuery.isError || productsQuery.isError) {
+  if (
+    categoriesQuery.isError ||
+    brandsQuery.isError ||
+    subcategoriesQuery.isError ||
+    productsQuery.isError
+  ) {
     return (
       <PageShell className="py-8 sm:py-10">
         <ErrorState
           error={
-            categoriesQuery.error || brandsQuery.error || productsQuery.error
+            categoriesQuery.error ||
+            brandsQuery.error ||
+            subcategoriesQuery.error ||
+            productsQuery.error
           }
           onRetry={() => window.location.reload()}
         />
@@ -90,6 +101,7 @@ export default function ProductsPage() {
 
   const categories = categoriesQuery.data?.items ?? [];
   const brands = brandsQuery.data?.items ?? [];
+  const subcategories = subcategoriesQuery.data?.items ?? [];
   const products = productsQuery.data?.items ?? [];
   const meta = productsQuery.data?.meta;
 
@@ -118,8 +130,9 @@ export default function ProductsPage() {
           onClear={handleClearFilters}
           showCategory
           showBrand
-          showSubcategory={false}
+          showSubcategory
           categoryOptions={categories}
+          subcategoryOptions={subcategories}
           brandOptions={brands}
         />
 

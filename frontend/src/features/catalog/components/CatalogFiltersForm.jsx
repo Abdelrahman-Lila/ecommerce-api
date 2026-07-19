@@ -30,7 +30,12 @@ export default function CatalogFiltersForm({
     [defaultValues],
   );
 
-  const { register, handleSubmit, reset } = useForm({
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm({
     resolver: zodResolver(catalogFiltersSchema),
     defaultValues: initialValues,
   });
@@ -82,14 +87,18 @@ export default function CatalogFiltersForm({
           label="Min price"
           type="number"
           min="0"
+          step="1"
           placeholder="0"
+          error={errors.minPrice?.message}
           {...register("minPrice")}
         />
         <Input
           label="Max price"
           type="number"
           min="0"
+          step="1"
           placeholder="1000"
+          error={errors.maxPrice?.message}
           {...register("maxPrice")}
         />
       </div>

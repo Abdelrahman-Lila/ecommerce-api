@@ -31,7 +31,6 @@ export default function CategoryPage() {
     () =>
       getCatalogFiltersFromSearchParams(searchParams, {
         category: categoryId,
-        page: 1,
       }),
     [categoryId, searchParams],
   );
@@ -109,10 +108,6 @@ export default function CategoryPage() {
   const subcategories = subcategoriesQuery.data?.items ?? [];
   const products = productsQuery.data?.items ?? [];
   const meta = productsQuery.data?.meta;
-  const productsById = Object.fromEntries(
-    products.map((product) => [product?._id || product?.id, product]),
-  );
-
   return (
     <PageShell className="space-y-8 py-8 sm:py-10">
       <div className="flex flex-wrap items-start justify-between gap-4">

@@ -17,6 +17,15 @@ export default function CatalogFiltersPanel({
   brandOptions,
 }) {
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
+  const activeFilterCount = [
+    defaultValues?.keyword,
+    defaultValues?.minPrice,
+    defaultValues?.maxPrice,
+    defaultValues?.category,
+    defaultValues?.subcategory,
+    defaultValues?.brand,
+    defaultValues?.inStock,
+  ].filter(Boolean).length;
 
   const filterForm = useMemo(
     () => (
@@ -65,7 +74,7 @@ export default function CatalogFiltersPanel({
             variant="secondary"
             onClick={() => setMobileFiltersOpen(true)}
           >
-            Filters
+            Filters{activeFilterCount ? ` (${activeFilterCount})` : ""}
           </Button>
         </div>
       </div>
