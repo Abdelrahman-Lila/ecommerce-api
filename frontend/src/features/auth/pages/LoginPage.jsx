@@ -38,7 +38,6 @@ export default function LoginPage() {
   return (
     <AuthShell
       title="Sign in to continue"
-      description="Use your account to check out and access protected areas later on."
       switchLabel="Need an account?"
       switchTo="/register"
     >
@@ -46,7 +45,7 @@ export default function LoginPage() {
         <Input
           label="Email"
           type="email"
-          placeholder="you@example.com"
+          placeholder="Email"
           error={errors.email?.message}
           {...register("email")}
         />
