@@ -60,9 +60,14 @@ export default function SiteHeader({ links = [], className }) {
               : "Guest"}
           </Badge>
           {!session.isAuthenticated ? (
-            <Button as={Link} to="/login" size="sm">
-              Sign in
-            </Button>
+            <>
+              <Button as={Link} to="/login" variant="ghost" size="sm">
+                Sign in
+              </Button>
+              <Button as={Link} to="/register" size="sm">
+                Register
+              </Button>
+            </>
           ) : (
             <Button variant="ghost" size="sm" onClick={logout}>
               Sign out

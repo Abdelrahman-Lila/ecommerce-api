@@ -40,7 +40,6 @@ export default function RegisterPage() {
   return (
     <AuthShell
       title="Create your account"
-      description="Register once, then use the same session token to continue into checkout later."
       switchLabel="Already have an account?"
       switchTo="/login"
     >
@@ -48,13 +47,13 @@ export default function RegisterPage() {
         <div className="grid gap-4 sm:grid-cols-2">
           <Input
             label="First name"
-            placeholder="Jane"
+            placeholder="First name"
             error={errors.firstName?.message}
             {...register("firstName")}
           />
           <Input
             label="Last name"
-            placeholder="Doe"
+            placeholder="Last name"
             error={errors.lastName?.message}
             {...register("lastName")}
           />
@@ -63,7 +62,7 @@ export default function RegisterPage() {
         <Input
           label="Email"
           type="email"
-          placeholder="you@example.com"
+          placeholder="Email"
           error={errors.email?.message}
           {...register("email")}
         />
@@ -71,13 +70,13 @@ export default function RegisterPage() {
         <div className="grid gap-4 sm:grid-cols-2">
           <Input
             label="Phone"
-            placeholder="+1 555 123 4567"
+            placeholder="Phone"
             error={errors.phone?.message}
             {...register("phone")}
           />
           <Input
             label="Country"
-            placeholder="United States"
+            placeholder="Country"
             error={errors.country?.message}
             {...register("country")}
           />
@@ -86,13 +85,13 @@ export default function RegisterPage() {
         <div className="grid gap-4 sm:grid-cols-2">
           <Input
             label="City"
-            placeholder="Austin"
+            placeholder="City"
             error={errors.city?.message}
             {...register("city")}
           />
           <Input
             label="Apartment"
-            placeholder="Apt 12B"
+            placeholder="Apartment"
             error={errors.apartment?.message}
             {...register("apartment")}
           />
@@ -100,7 +99,7 @@ export default function RegisterPage() {
 
         <Input
           label="Street"
-          placeholder="123 Main Street"
+          placeholder="Street"
           error={errors.street?.message}
           {...register("street")}
         />
@@ -109,14 +108,14 @@ export default function RegisterPage() {
           <Input
             label="Password"
             type="password"
-            placeholder="••••••••"
+            placeholder="Password"
             error={errors.password?.message}
             {...register("password")}
           />
           <Input
             label="Confirm password"
             type="password"
-            placeholder="••••••••"
+            placeholder="Confirm password"
             error={errors.confirmPassword?.message}
             {...register("confirmPassword")}
           />
