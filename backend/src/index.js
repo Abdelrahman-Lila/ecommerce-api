@@ -31,7 +31,10 @@ app.use(
   "/uploads/brands",
   express.static(path.join(__dirname, "../uploads/brands")),
 );
-
+app.use(
+  "/uploads/products-gallery",
+  express.static(path.join(__dirname, "../uploads/products-gallery")),
+);
 connectDatabase();
 
 if (process.env.NODE_ENV === "development") {

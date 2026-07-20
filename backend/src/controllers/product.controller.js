@@ -2,9 +2,8 @@ import Product from "../models/product.model.js";
 import asyncHandler from "express-async-handler";
 import ApiError from "../utils/api-error.js";
 import ApiFeatures from "../utils/api-features.js";
+import deleteLocalFile from "../utils/deleteFile.js";
 import * as factory from "./factory-handler.controller.js";
-import fs from "fs";
-import path from "path";
 
 const getProducts = factory.getAll(Product, "products");
 
@@ -24,16 +23,18 @@ const createProduct = asyncHandler(async (req, res, next) => {
 });
 
 const uploadImageGallery = asyncHandler(async (req, res, next) => {
+  const { id } = req.params;
+
   const files = req.files;
   let imagePaths = [];
-  const basePath = `${req.protocol}://${req.get("host")}/uploads/`;
+  const basePath = `${req.protocol}://${req.get("host")}/uploads/products-gallery/`;
 
   files.map((file) => {
     imagePaths.push(`${basePath}${file.filename}`);
   });
 
   const product = await Product.findByIdAndUpdate(
-    req.params.id,
+    { _id: id },
     { images: imagePaths },
     {
       returnDocument: "after",
@@ -51,7 +52,6 @@ const uploadImageGallery = asyncHandler(async (req, res, next) => {
 
 const updateProduct = factory.updateOne(Product);
 
-// const deleteProduct = factory.deleteOne(Product);
 const deleteProduct = asyncHandler(async (req, res, next) => {
   const { id } = req.params;
   const product = await Product.findById(id);
@@ -60,24 +60,19 @@ const deleteProduct = asyncHandler(async (req, res, next) => {
     return next(new ApiError("Requested product not found", 404));
   }
 
-  if (product.imageCover) {
-    const relativePath =
-      product.imageCover.split("/uploads/products")[1] || product.imageCover;
-    const absolutePath = path.join(
-      process.cwd(),
-      "uploads/products",
-      relativePath,
-    );
+  deleteLocalFile(product.imageCover);
 
-    if (fs.existsSync(absolutePath)) {
-      fs.unlinkSync(absolutePath);
-    }
+  if (product.images && Array.isArray(product.images)) {
+    product.images.forEach((imageUrl) => {
+      deleteLocalFile(imageUrl);
+    });
   }
+
   await product.deleteOne();
 
   res.status(200).json({
     status: "success",
-    message: "Product and associated image deleted successfully",
+    message: "Product and associated images deleted successfully",
   });
 });
 
