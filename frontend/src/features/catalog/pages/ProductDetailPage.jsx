@@ -6,30 +6,43 @@ import EmptyState from "../../../components/ui/EmptyState.jsx";
 import Button from "../../../components/ui/Button.jsx";
 import ProductDetailHero from "../components/ProductDetailHero.jsx";
 import RelatedProductsSection from "../components/RelatedProductsSection.jsx";
-import { useProducts } from "../hooks/useCatalogQueries.js";
 import {
-  useBrand,
-  useCategory,
   useProduct,
+  useProducts,
+  useSubcategories,
 } from "../hooks/useCatalogQueries.js";
-import { getEntityId } from "../lib/catalogFilters.js";
+import { getEntityId, readLabel } from "../lib/catalogFilters.js";
+
+const findEntityByName = (entities, name) =>
+  entities.find(
+    (entity) =>
+      readLabel(entity).trim().toLocaleLowerCase() ===
+      name.trim().toLocaleLowerCase(),
+  );
 
 export default function ProductDetailPage() {
   const { productId } = useParams();
   const productQuery = useProduct(productId);
 
   const product = productQuery.data;
-  const categoryId = getEntityId(product?.category);
-  const brandId = getEntityId(product?.brand);
+  const primarySubcategory = product?.subcategories?.[0];
+  const subcategoryName = readLabel(primarySubcategory);
+  const subcategoriesQuery = useSubcategories(
+    { keyword: subcategoryName, limit: 20 },
+    { enabled: Boolean(subcategoryName) },
+  );
+  const matchingSubcategory = findEntityByName(
+    subcategoriesQuery.data?.items ?? [],
+    subcategoryName,
+  );
+  const subcategoryId =
+    getEntityId(primarySubcategory) || getEntityId(matchingSubcategory);
 
-  const categoryQuery = useCategory(categoryId);
-  const brandQuery = useBrand(brandId);
-  const relatedParams = product
+  const relatedParams = product && subcategoryId
     ? {
         limit: 8,
         sort: "-createdAt",
-        ...(categoryId ? { category: categoryId } : {}),
-        ...(brandId ? { brand: brandId } : {}),
+        subcategories: subcategoryId,
       }
     : null;
   const relatedProductsQuery = useProducts(relatedParams, {
@@ -38,8 +51,7 @@ export default function ProductDetailPage() {
 
   if (
     productQuery.isLoading ||
-    categoryQuery.isLoading ||
-    brandQuery.isLoading ||
+    subcategoriesQuery.isLoading ||
     relatedProductsQuery.isLoading
   ) {
     return (
@@ -51,8 +63,7 @@ export default function ProductDetailPage() {
 
   if (
     productQuery.isError ||
-    categoryQuery.isError ||
-    brandQuery.isError ||
+    subcategoriesQuery.isError ||
     relatedProductsQuery.isError
   ) {
     return (
@@ -60,8 +71,7 @@ export default function ProductDetailPage() {
         <ErrorState
           error={
             productQuery.error ||
-            categoryQuery.error ||
-            brandQuery.error ||
+            subcategoriesQuery.error ||
             relatedProductsQuery.error
           }
           onRetry={() => window.location.reload()}
@@ -99,16 +109,12 @@ export default function ProductDetailPage() {
         </Button>
       </div>
 
-      <ProductDetailHero
-        product={product}
-        category={categoryQuery.data}
-        brand={brandQuery.data}
-      />
+      <ProductDetailHero product={product} />
 
       <RelatedProductsSection
         eyebrow="Related products"
         title="More like this"
-        description="We pulled matching products from the same category or brand using the catalog API."
+        description="These products share the same subcategory."
         query={relatedProductsQuery}
         currentProductId={product?._id || product?.id}
       />
