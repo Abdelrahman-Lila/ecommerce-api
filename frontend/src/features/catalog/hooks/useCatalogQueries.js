@@ -50,10 +50,11 @@ export const useCategory = (categoryId) =>
     enabled: Boolean(categoryId),
   });
 
-export const useSubcategories = (params) =>
+export const useSubcategories = (params, options = {}) =>
   useQuery({
     queryKey: catalogKeys.subcategories(params),
     queryFn: () => getSubcategories(params),
+    ...options,
   });
 
 export const useCategorySubcategories = (categoryId, params) =>
