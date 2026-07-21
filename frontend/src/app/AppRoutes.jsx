@@ -9,6 +9,8 @@ import BrandPage from "../features/catalog/pages/BrandPage.jsx";
 import ProductDetailPage from "../features/catalog/pages/ProductDetailPage.jsx";
 import LoginPage from "../features/auth/pages/LoginPage.jsx";
 import RegisterPage from "../features/auth/pages/RegisterPage.jsx";
+import ProfilePage from "../features/auth/pages/ProfilePage.jsx";
+import UpdateProfilePage from "../features/auth/pages/UpdateProfilePage.jsx";
 import { PublicOnlyRoute, RequireAuth } from "./components/RouteGuard.jsx";
 import CartPage from "../features/cart/pages/CartPage.jsx";
 import CheckoutPage from "../features/checkout/pages/CheckoutPage.jsx";
@@ -39,6 +41,8 @@ export default function AppRoutes() {
           <Route path="checkout" element={<CheckoutPage />} />
           <Route path="checkout/success" element={<CheckoutSuccessPage />} />
           <Route path="orders" element={<OrdersPage />} />
+          <Route path="profile" element={<ProfilePage />} />
+          <Route path="profile/update" element={<UpdateProfilePage />} />
         </Route>
       </Route>
 

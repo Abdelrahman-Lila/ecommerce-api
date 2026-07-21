@@ -1,4 +1,5 @@
 import axios from "axios";
+import { clearAccessToken } from "../features/auth/lib/authStorage.js";
 
 const apiClient = axios.create({
   baseURL: "/api",
@@ -21,7 +22,7 @@ apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error?.response?.status === 401) {
-      localStorage.removeItem("accessToken");
+      clearAccessToken();
     }
 
     return Promise.reject(error);

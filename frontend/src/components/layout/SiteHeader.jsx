@@ -52,9 +52,14 @@ export default function SiteHeader({ links = [], className }) {
               Orders
             </Button>
           ) : null}
+          {session.isAuthenticated ? (
+            <Button as={Link} to="/profile" variant="ghost" size="sm">
+              Profile
+            </Button>
+          ) : null}
           <Badge variant={session.isAuthenticated ? "success" : "neutral"}>
             {session.isAuthenticated
-              ? session.isAdmin
+              ? session.role === "admin"
                 ? "Admin"
                 : "Signed in"
               : "Guest"}
