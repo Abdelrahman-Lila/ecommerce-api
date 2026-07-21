@@ -16,13 +16,13 @@ export const authNavItems = [
 ];
 
 export const adminNavItems = [
-  { to: "/admin", label: "Overview" },
-  { to: "/admin/products", label: "Products" },
+  { to: "/admin", label: "Dashboard" },
   { to: "/admin/categories", label: "Categories" },
   { to: "/admin/subcategories", label: "Subcategories" },
   { to: "/admin/brands", label: "Brands" },
-  { to: "/admin/orders", label: "Orders" },
+  { to: "/admin/products", label: "Products" },
   { to: "/admin/users", label: "Users" },
+  { to: "/admin/orders", label: "Orders" },
 ];
 
 export const storefrontRoutes = [

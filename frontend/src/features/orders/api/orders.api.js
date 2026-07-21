@@ -10,8 +10,16 @@ export const createOrder = async (payload) => {
 };
 
 export const getUserOrders = async (userId) => {
-  const { data } = await apiClient.get(`/orders/get/userorders/${userId}`);
-  return normalizeCollectionResponse(data, "orders");
+  try {
+    const { data } = await apiClient.get(`/orders/get/userorders/${userId}`);
+    return normalizeCollectionResponse(data, "orders");
+  } catch (error) {
+    if (error?.response?.status === 404) {
+      return normalizeCollectionResponse({ data: [] }, "orders");
+    }
+
+    throw error;
+  }
 };
 
 export const getOrders = async (params = {}) => {

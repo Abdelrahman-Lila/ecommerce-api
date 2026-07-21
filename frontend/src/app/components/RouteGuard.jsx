@@ -22,6 +22,20 @@ export function RequireAdmin({ redirectTo = "/" }) {
   return <Outlet />;
 }
 
+export function RequireCustomer({ redirectTo = "/admin" }) {
+  const { role, isAuthenticated } = useAuthSession();
+
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />;
+  }
+
+  if (role === "admin") {
+    return <Navigate to={redirectTo} replace />;
+  }
+
+  return <Outlet />;
+}
+
 export function PublicOnlyRoute({ redirectTo = "/" }) {
   const { isAuthenticated } = useAuthSession();
 

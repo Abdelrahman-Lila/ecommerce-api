@@ -44,12 +44,19 @@ export default function SiteHeader({ links = [], className }) {
         </nav>
 
         <div className="flex items-center gap-2">
-          <Button as={Link} to="/cart" variant="secondary" size="sm">
-            Cart {itemCount ? `(${itemCount})` : ""}
-          </Button>
-          {session.isAuthenticated ? (
+          {session.role !== "admin" ? (
+            <Button as={Link} to="/cart" variant="secondary" size="sm">
+              Cart {itemCount ? `(${itemCount})` : ""}
+            </Button>
+          ) : null}
+          {session.isAuthenticated && session.role !== "admin" ? (
             <Button as={Link} to="/orders" variant="ghost" size="sm">
               Orders
+            </Button>
+          ) : null}
+          {session.role === "admin" ? (
+            <Button as={Link} to="/admin" variant="secondary" size="sm">
+              Dashboard
             </Button>
           ) : null}
           {session.isAuthenticated ? (

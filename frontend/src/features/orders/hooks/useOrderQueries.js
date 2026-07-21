@@ -26,4 +26,6 @@ export const useUserOrders = (userId) =>
     queryKey: orderKeys.mine(userId),
     queryFn: () => getUserOrders(userId),
     enabled: Boolean(userId),
+    staleTime: 0,
+    refetchOnMount: "always",
   });
