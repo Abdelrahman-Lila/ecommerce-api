@@ -40,7 +40,7 @@ const createOrder = asyncHandler(async (req, res, next) => {
   req.body.orderItems = orderItemsIdsResolved;
   req.body.totalPrice = totalPrice;
   req.body.user = req.auth.id;
-
+  req.body.status = "Pending";
   const order = await Order.create(req.body);
   res.status(201).json({
     status: "success",
@@ -122,7 +122,21 @@ const deleteOrder = asyncHandler(async (req, res, next) => {
   }
 });
 
+const ensureUserCanManageAccount = (req, next) => {
+  const isAdmin = req.auth?.role === "admin";
+  const isAccountOwner = req.auth?.id === req.params.userid;
+
+  if (!isAdmin && !isAccountOwner) {
+    next(new ApiError("You can only manage your own account", 403));
+    return false;
+  }
+
+  return true;
+};
+
 const getUserOrders = asyncHandler(async (req, res, next) => {
+  if (!ensureUserCanManageAccount(req, next)) return;
+
   const userOrderList = await Order.find({ user: req.params.userid })
     .populate({
       path: "orderItems",

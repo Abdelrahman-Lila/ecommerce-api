@@ -4,6 +4,7 @@ import ApiError from "../utils/api-error.js";
 import Product from "../models/product.model.js";
 import * as productController from "../controllers/product.controller.js";
 import * as productValidator from "../utils/validators/product.validator.js";
+import requireAdmin from "../middlewares/require-admin.middleware.js";
 
 const router = express.Router();
 
@@ -55,6 +56,7 @@ router
   .route("/")
   .get(productController.getProducts)
   .post(
+    requireAdmin,
     upload_cover.single("imageCover"),
     productValidator.createProductValidator,
     productController.createProduct,
@@ -62,13 +64,22 @@ router
 
 router
   .route("/gallery-images/:id")
-  .put(upload_images.array("images", 5), productController.uploadImageGallery);
+  .put(
+    requireAdmin,
+    upload_images.array("images", 5),
+    productController.uploadImageGallery,
+  );
 
 router
   .route("/:id")
   .get(productValidator.getProductValidator, productController.getProduct)
-  .put(productValidator.updateProductValidator, productController.updateProduct)
+  .put(
+    requireAdmin,
+    productValidator.updateProductValidator,
+    productController.updateProduct,
+  )
   .delete(
+    requireAdmin,
     productValidator.deleteProductValidator,
     productController.deleteProduct,
   );

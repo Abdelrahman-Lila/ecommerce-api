@@ -4,24 +4,26 @@ import ApiError from "../utils/api-error.js";
 import ApiFeatures from "../utils/api-features.js";
 import bcrypt from "bcrypt";
 import validator from "validator";
-import jwt from "jsonwebtoken";
 import generateJWT from "../utils/generate-JWT.js";
 
 const register = asyncHandler(async (req, res) => {
   const salt = 10;
   const hashedPassword = await bcrypt.hash(req.body.password, salt);
+
   req.body.password = hashedPassword;
   req.body.name = `${req.body.firstName} ${req.body.lastName}`;
+  req.body.role = "user";
   const user = await User.create(req.body);
   const token = generateJWT(
-    { email: user.email, id: user._id, isAdmin: user.isAdmin },
+    { email: user.email, id: user._id, role: user.role },
     "10m",
   );
+  const { password, ...safeUser } = user.toObject();
   res.status(201).json({
     status: "success",
     message: "User Registered Successfully",
     token: token,
-    data: user,
+    data: safeUser,
   });
 });
 
@@ -35,7 +37,7 @@ const login = asyncHandler(async (req, res, next) => {
     return next(new ApiError("Invalid email format", 400));
   }
 
-  const user = await User.findOne({ email });
+  const user = await User.findOne({ email }).select("+password");
   if (!user) {
     return next(new ApiError("Invalid email or password", 400));
   }
@@ -45,7 +47,7 @@ const login = asyncHandler(async (req, res, next) => {
     return next(new ApiError("Invalid email or password", 400));
   }
   const token = generateJWT(
-    { email: user.email, id: user._id, isAdmin: user.isAdmin },
+    { email: user.email, id: user._id, role: user.role },
     "1d",
   );
 
@@ -81,4 +83,70 @@ const getUsers = asyncHandler(async (req, res) => {
   });
 });
 
-export { register, login, getUser, getUsers };
+const ensureUserCanManageAccount = (req, next) => {
+  const isAdmin = req.auth?.role === "admin";
+  const isAccountOwner = req.auth?.id === req.params.id;
+
+  if (!isAdmin && !isAccountOwner) {
+    next(new ApiError("You can only manage your own account", 403));
+    return false;
+  }
+
+  return true;
+};
+
+const updateUser = asyncHandler(async (req, res, next) => {
+  if (!ensureUserCanManageAccount(req, next)) return;
+
+  const allowedFields = [
+    "firstName",
+    "lastName",
+    "phone",
+    "street",
+    "apartment",
+    "city",
+    "country",
+    "password",
+  ];
+  const updates = Object.fromEntries(
+    Object.entries(req.body).filter(([key]) => allowedFields.includes(key)),
+  );
+
+  if (updates.password) {
+    updates.password = await bcrypt.hash(updates.password, 10);
+  }
+
+  const user = await User.findById(req.params.id);
+
+  if (!user) {
+    return next(new ApiError("Requested user not found", 404));
+  }
+
+  if (updates.firstName || updates.lastName) {
+    const firstName = updates.firstName ?? user.firstName;
+    const lastName = updates.lastName ?? user.lastName;
+    updates.name = `${firstName} ${lastName}`.trim();
+  }
+
+  user.set(updates);
+
+  await user.save({ validateModifiedOnly: true });
+
+  res.status(200).json({
+    status: "success",
+    data: user,
+  });
+});
+
+const deleteUser = asyncHandler(async (req, res, next) => {
+  if (!ensureUserCanManageAccount(req, next)) return;
+
+  const user = await User.findByIdAndDelete(req.params.id);
+  if (!user) {
+    return next(new ApiError("Requested user not found", 404));
+  }
+
+  res.status(200).json({ status: "success", message: `Account Deleted` });
+});
+
+export { register, login, getUser, getUsers, updateUser, deleteUser };

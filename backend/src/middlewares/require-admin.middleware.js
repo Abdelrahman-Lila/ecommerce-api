@@ -5,7 +5,7 @@ const requireAdmin = (req, res, next) => {
     return next(new ApiError("Authentication required", 401));
   }
 
-  if (!req.auth.isAdmin) {
+  if (req.auth?.role !== "admin") {
     return next(new ApiError("Admin access only", 403));
   }
 
