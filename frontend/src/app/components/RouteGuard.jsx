@@ -13,9 +13,9 @@ export function RequireAuth({ redirectTo = "/login" }) {
 }
 
 export function RequireAdmin({ redirectTo = "/" }) {
-  const { isAdmin, isAuthenticated } = useAuthSession();
+  const { role, isAuthenticated } = useAuthSession();
 
-  if (!isAuthenticated || !isAdmin) {
+  if (!isAuthenticated || role !== "admin") {
     return <Navigate to={redirectTo} replace />;
   }
 

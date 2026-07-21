@@ -7,6 +7,7 @@ export const protectedNavItems = [
   { to: "/cart", label: "Cart" },
   { to: "/checkout", label: "Checkout" },
   { to: "/orders", label: "Orders" },
+  { to: "/profile", label: "Profile" },
 ];
 
 export const authNavItems = [

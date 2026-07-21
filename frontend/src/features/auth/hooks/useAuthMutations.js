@@ -1,5 +1,10 @@
 import { useMutation } from "@tanstack/react-query";
-import { login, register } from "../api/auth.api.js";
+import {
+  deleteUserAccount,
+  login,
+  register,
+  updateUserProfile,
+} from "../api/auth.api.js";
 import { clearAccessToken, setAccessToken } from "../lib/authStorage.js";
 
 export const useLoginMutation = () =>
@@ -21,5 +26,11 @@ export const useRegisterMutation = () =>
       }
     },
   });
+
+export const useUpdateUserProfileMutation = () =>
+  useMutation({ mutationFn: updateUserProfile });
+
+export const useDeleteUserAccountMutation = () =>
+  useMutation({ mutationFn: deleteUserAccount });
 
 export const useLogout = () => () => clearAccessToken();

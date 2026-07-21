@@ -43,9 +43,12 @@ export const getTokenUser = (token) => {
     return null;
   }
 
+  const role =
+    payload.role === "admin" || payload.isAdmin === true ? "admin" : "user";
+
   return {
     id: payload.id ?? null,
     email: payload.email ?? null,
-    isAdmin: Boolean(payload.isAdmin),
+    role,
   };
 };

@@ -31,6 +31,7 @@ export const getAuthSession = () => {
       token: null,
       user: null,
       isAuthenticated: false,
+      role: null,
       isAdmin: false,
     };
   }
@@ -41,7 +42,8 @@ export const getAuthSession = () => {
     token,
     user,
     isAuthenticated: Boolean(token && user),
-    isAdmin: Boolean(user?.isAdmin),
+    role: user?.role ?? null,
+    isAdmin: user?.role === "admin",
   };
 };
 
