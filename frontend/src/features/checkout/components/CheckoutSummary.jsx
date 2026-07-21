@@ -12,7 +12,9 @@ export default function CheckoutSummary({ items = [], subtotal }) {
             Review your items
           </h2>
         </div>
-        <Badge variant="primary">{items.length} lines</Badge>
+        <Badge variant="primary">
+          {items.length} {items.length === 1 ? "product" : "products"}
+        </Badge>
       </div>
 
       <div className="space-y-3">

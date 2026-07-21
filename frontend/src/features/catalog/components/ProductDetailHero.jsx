@@ -3,11 +3,14 @@ import Button from "../../../components/ui/Button.jsx";
 import { Card } from "../../../components/ui/Card.jsx";
 import { readLabel } from "../lib/catalogFilters.js";
 import { useCart } from "../../cart/hooks/useCart.js";
+import { useAuthSession } from "../../auth/hooks/useAuthSession.js";
 import ProductGallery from "./ProductGallery.jsx";
 import { formatCurrency } from "../../../lib/currency.js";
 
 export default function ProductDetailHero({ product }) {
   const { addItem } = useCart();
+  const { role } = useAuthSession();
+  const isAdmin = role === "admin";
   const categoryLabel = readLabel(product?.category);
   const brandLabel = readLabel(product?.brand);
   const colors = (product?.colors ?? []).filter(Boolean);
@@ -92,19 +95,23 @@ export default function ProductDetailHero({ product }) {
 
           <div className="flex flex-wrap gap-3">
             <Button
-              onClick={() =>
-                addItem({
-                  id: product?._id || product?.id,
-                  title: product?.title,
-                  price: product?.price,
-                  image: product?.imageCover || product?.images?.[0] || "",
-                  quantity: 1,
-                  stock: product?.quantity,
-                  category: product?.category,
-                  brand: product?.brand,
-                })
+              onClick={
+                isAdmin
+                  ? undefined
+                  : () =>
+                      addItem({
+                        id: product?._id || product?.id,
+                        title: product?.title,
+                        price: product?.price,
+                        image:
+                          product?.imageCover || product?.images?.[0] || "",
+                        quantity: 1,
+                        stock: product?.quantity,
+                        category: product?.category,
+                        brand: product?.brand,
+                      })
               }
-              disabled={Number(product?.quantity ?? 0) <= 0}
+              disabled={isAdmin || Number(product?.quantity ?? 0) <= 0}
             >
               Add to cart
             </Button>

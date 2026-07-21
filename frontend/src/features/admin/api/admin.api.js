@@ -14,6 +14,16 @@ export const getUser = async (userId) => {
   return unwrapResponseData(data);
 };
 
+export const updateAdminUser = async (userId, payload) => {
+  const { data } = await apiClient.put(`/users/${userId}`, payload);
+  return unwrapResponseData(data);
+};
+
+export const deleteAdminUser = async (userId) => {
+  const { data } = await apiClient.delete(`/users/${userId}`);
+  return unwrapResponseData(data);
+};
+
 export const createProduct = async (payload) => {
   const { data } = await apiClient.post("/products", payload, {
     headers: { "Content-Type": "multipart/form-data" },
@@ -95,8 +105,14 @@ export const deleteSubcategory = async (subcategoryId) => {
   return unwrapResponseData(data);
 };
 
-export const createBrand = async (payload) => {
-  const { data } = await apiClient.post("/brands", payload);
+export const createBrand = async ({ name, image }) => {
+  const formData = new FormData();
+  formData.append("name", name);
+  formData.append("image", image);
+
+  const { data } = await apiClient.post("/brands", formData, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
   return unwrapResponseData(data);
 };
 

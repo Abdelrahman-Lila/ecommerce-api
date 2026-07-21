@@ -114,26 +114,26 @@ export default function CheckoutPage() {
           <div className="grid gap-4 sm:grid-cols-2">
             <Input
               label="City"
-              placeholder="Austin"
+              placeholder="City"
               error={errors.city?.message}
               {...register("city")}
             />
             <Input
               label="Country"
-              placeholder="United States"
+              placeholder="Country"
               error={errors.country?.message}
               {...register("country")}
             />
           </div>
           <Input
             label="Shipping address"
-            placeholder="123 Main Street"
+            placeholder="Shipping address"
             error={errors.shippingAddress?.message}
             {...register("shippingAddress")}
           />
           <Input
             label="Phone"
-            placeholder="+1 555 123 4567"
+            placeholder="Phone"
             error={errors.phone?.message}
             {...register("phone")}
           />

@@ -4,11 +4,14 @@ import Button from "../../../components/ui/Button.jsx";
 import { Card } from "../../../components/ui/Card.jsx";
 import { readLabel } from "../lib/catalogFilters.js";
 import { useCart } from "../../cart/hooks/useCart.js";
+import { useAuthSession } from "../../auth/hooks/useAuthSession.js";
 import { formatCurrency } from "../../../lib/currency.js";
 
 export default function ProductCard({ product, categoryName, brandName }) {
   const productId = product?._id || product?.id;
   const { addItem } = useCart();
+  const { role } = useAuthSession();
+  const isAdmin = role === "admin";
   const imageSource = product?.imageCover || product?.images?.[0] || "";
   const categoryLabel = categoryName || readLabel(product?.category);
   const brandLabel = brandName || readLabel(product?.brand);
@@ -73,19 +76,22 @@ export default function ProductCard({ product, categoryName, brandName }) {
         </Button>
         <Button
           className="w-full"
-          onClick={() =>
-            addItem({
-              id: productId,
-              title: product?.title,
-              price: product?.price,
-              image: imageSource,
-              quantity: 1,
-              stock: product?.quantity,
-              category: product?.category,
-              brand: product?.brand,
-            })
+          onClick={
+            isAdmin
+              ? undefined
+              : () =>
+                  addItem({
+                    id: productId,
+                    title: product?.title,
+                    price: product?.price,
+                    image: imageSource,
+                    quantity: 1,
+                    stock: product?.quantity,
+                    category: product?.category,
+                    brand: product?.brand,
+                  })
           }
-          disabled={Number(product?.quantity ?? 0) <= 0}
+          disabled={isAdmin || Number(product?.quantity ?? 0) <= 0}
         >
           Add to cart
         </Button>
