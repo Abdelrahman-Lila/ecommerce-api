@@ -2,6 +2,8 @@ import express from "express";
 import multer from "multer";
 import * as brandController from "../controllers/brand.controller.js";
 import * as brandValidator from "../utils/validators/brand.validator.js";
+import requireAdmin from "../middlewares/require-admin.middleware.js";
+
 const router = express.Router();
 
 const FILE_TYPE_MAP = {
@@ -32,6 +34,7 @@ router
   .route("/")
   .get(brandController.getBrands)
   .post(
+    requireAdmin,
     uploadOptions.single("image"),
     brandValidator.createBrandValidator,
     brandController.createBrand,
@@ -40,7 +43,15 @@ router
 router
   .route("/:id")
   .get(brandValidator.getBrandValidator, brandController.getBrand)
-  .put(brandValidator.updateBrandValidator, brandController.updateBrand)
-  .delete(brandValidator.deleteBrandValidator, brandController.deleteBrand);
+  .put(
+    requireAdmin,
+    brandValidator.updateBrandValidator,
+    brandController.updateBrand,
+  )
+  .delete(
+    requireAdmin,
+    brandValidator.deleteBrandValidator,
+    brandController.deleteBrand,
+  );
 
 export default router;

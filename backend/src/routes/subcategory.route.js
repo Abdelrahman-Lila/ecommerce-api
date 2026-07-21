@@ -1,6 +1,7 @@
 import express from "express";
 import * as subCategoryController from "../controllers/subcategory.controller.js";
 import * as subCategoryValidator from "../utils/validators/subcategory.validator.js";
+import requireAdmin from "../middlewares/require-admin.middleware.js";
 
 const router = express.Router({ mergeParams: true });
 
@@ -11,6 +12,7 @@ router
     subCategoryController.getSubCategories,
   )
   .post(
+    requireAdmin,
     subCategoryController.setCategorytoBody,
     subCategoryValidator.createSubCategoryValidator,
     subCategoryController.createSubCategory,
@@ -23,10 +25,12 @@ router
     subCategoryController.getSubCategory,
   )
   .put(
+    requireAdmin,
     subCategoryValidator.updateSubCategoryValidator,
     subCategoryController.updateSubCategory,
   )
   .delete(
+    requireAdmin,
     subCategoryValidator.deleteSubCategoryValidator,
     subCategoryController.deleteSubCategory,
   );
