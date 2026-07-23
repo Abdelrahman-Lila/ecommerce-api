@@ -9,6 +9,7 @@ import ErrorState from "../../../components/ui/ErrorState.jsx";
 import Input from "../../../components/ui/Input.jsx";
 import LoadingState from "../../../components/ui/LoadingState.jsx";
 import Modal from "../../../components/ui/Modal.jsx";
+import CatalogPagination from "../../catalog/components/CatalogPagination.jsx";
 import { formatCurrency } from "../../../lib/currency.js";
 import {
   createProduct,
@@ -52,6 +53,7 @@ const createEmptyForm = () => ({
 export default function AdminProductsPage() {
   const queryClient = useQueryClient();
   const [searchTerm, setSearchTerm] = useState("");
+  const [page, setPage] = useState(1);
   const [productFilters, setProductFilters] = useState({
     keyword: "",
     category: "",
@@ -66,6 +68,7 @@ export default function AdminProductsPage() {
           ? current
           : { ...current, keyword: searchTerm },
       );
+      setPage(1);
     }, 350);
 
     return () => window.clearTimeout(timeoutId);
@@ -74,10 +77,10 @@ export default function AdminProductsPage() {
     () =>
       buildProductQueryParams({
         ...productFilters,
-        page: 1,
-        limit: 100,
+        page,
+        limit: 12,
       }),
-    [productFilters],
+    [page, productFilters],
   );
   const productsQuery = useProducts(productQueryParams);
   const categoriesQuery = useCategories({ limit: 100, sort: "name" });
@@ -138,11 +141,14 @@ export default function AdminProductsPage() {
 
   const setField = (field, value) =>
     setForm((current) => ({ ...current, [field]: value }));
-  const setProductFilter = (field, value) =>
+  const setProductFilter = (field, value) => {
     setProductFilters((current) => ({ ...current, [field]: value }));
+    setPage(1);
+  };
   const clearProductFilters = () =>
     {
       setSearchTerm("");
+      setPage(1);
       setProductFilters({
         keyword: "",
         category: "",
@@ -367,8 +373,9 @@ export default function AdminProductsPage() {
           onAction={() => window.location.assign("/admin/categories")}
         />
       ) : products.length ? (
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-          {products.map((product) => (
+        <div className="space-y-6">
+          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+            {products.map((product) => (
             <Card key={product?._id || product?.id} className="space-y-4">
               <div className="flex gap-4">
                 <div className="flex h-20 w-20 flex-none items-center justify-center overflow-hidden rounded-2xl bg-slate-100">
@@ -409,7 +416,9 @@ export default function AdminProductsPage() {
                 </Button>
               </div>
             </Card>
-          ))}
+            ))}
+          </div>
+          <CatalogPagination meta={productsQuery.data?.meta} onPageChange={setPage} />
         </div>
       ) : (
         <EmptyState

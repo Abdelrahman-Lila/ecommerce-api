@@ -8,13 +8,15 @@ import ErrorState from "../../../components/ui/ErrorState.jsx";
 import Input from "../../../components/ui/Input.jsx";
 import LoadingState from "../../../components/ui/LoadingState.jsx";
 import Modal from "../../../components/ui/Modal.jsx";
+import CatalogPagination from "../../catalog/components/CatalogPagination.jsx";
 import { createBrand, deleteBrand, updateBrand } from "../api/admin.api.js";
 import { useBrands } from "../../catalog/hooks/useCatalogQueries.js";
 
 export default function AdminBrandsPage() {
   const queryClient = useQueryClient();
   const [sortOrder, setSortOrder] = useState("name");
-  const brandsQuery = useBrands({ limit: 100, sort: sortOrder });
+  const [page, setPage] = useState(1);
+  const brandsQuery = useBrands({ limit: 12, page, sort: sortOrder });
   const [editor, setEditor] = useState(null);
   const [name, setName] = useState("");
   const [image, setImage] = useState(null);
@@ -112,7 +114,10 @@ export default function AdminBrandsPage() {
           <select
             className="w-full rounded-2xl border border-[var(--border)] bg-white/90 px-4 py-3 text-sm text-[var(--text)] shadow-sm transition focus:border-[var(--primary)] focus:outline-none focus:ring-2 focus:ring-[rgba(15,118,110,0.18)]"
             value={sortOrder}
-            onChange={(event) => setSortOrder(event.target.value)}
+            onChange={(event) => {
+              setSortOrder(event.target.value);
+              setPage(1);
+            }}
           >
             <option value="name">A–Z</option>
             <option value="-name">Z–A</option>
@@ -121,8 +126,9 @@ export default function AdminBrandsPage() {
       </div>
 
       {brands.length ? (
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-          {brands.map((brand) => (
+        <div className="space-y-6">
+          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+            {brands.map((brand) => (
             <Card key={brand?._id || brand?.id} className="space-y-4">
               <div className="flex items-center gap-4">
                 <div className="flex h-14 w-14 flex-none items-center justify-center overflow-hidden rounded-2xl bg-slate-100">
@@ -149,7 +155,9 @@ export default function AdminBrandsPage() {
                 </Button>
               </div>
             </Card>
-          ))}
+            ))}
+          </div>
+          <CatalogPagination meta={brandsQuery.data?.meta} onPageChange={setPage} />
         </div>
       ) : (
         <EmptyState

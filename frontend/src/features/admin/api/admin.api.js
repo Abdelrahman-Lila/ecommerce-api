@@ -57,6 +57,11 @@ export const getAdminOrders = async (params = {}) => {
   return normalizeCollectionResponse(data, "orders");
 };
 
+export const getAdminDashboardStats = async () => {
+  const { data } = await apiClient.get("/admin/dashboard/stats");
+  return data;
+};
+
 export const getAdminOrder = async (orderId) => {
   const { data } = await apiClient.get(`/orders/${orderId}`);
   return unwrapResponseData(data);
@@ -64,6 +69,11 @@ export const getAdminOrder = async (orderId) => {
 
 export const updateAdminOrder = async (orderId, payload) => {
   const { data } = await apiClient.put(`/orders/${orderId}`, payload);
+  return unwrapResponseData(data);
+};
+
+export const cancelAdminOrder = async (orderId) => {
+  const { data } = await apiClient.put(`/orders/${orderId}/cancel`);
   return unwrapResponseData(data);
 };
 

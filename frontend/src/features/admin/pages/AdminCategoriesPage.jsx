@@ -8,6 +8,7 @@ import ErrorState from "../../../components/ui/ErrorState.jsx";
 import Input from "../../../components/ui/Input.jsx";
 import LoadingState from "../../../components/ui/LoadingState.jsx";
 import Modal from "../../../components/ui/Modal.jsx";
+import CatalogPagination from "../../catalog/components/CatalogPagination.jsx";
 import {
   createCategory,
   deleteCategory,
@@ -20,7 +21,8 @@ const emptyForm = { name: "" };
 export default function AdminCategoriesPage() {
   const queryClient = useQueryClient();
   const [sortOrder, setSortOrder] = useState("name");
-  const categoriesQuery = useCategories({ limit: 100, sort: sortOrder });
+  const [page, setPage] = useState(1);
+  const categoriesQuery = useCategories({ limit: 12, page, sort: sortOrder });
   const [editor, setEditor] = useState(null);
   const [name, setName] = useState("");
   const [categoryToDelete, setCategoryToDelete] = useState(null);
@@ -114,7 +116,10 @@ export default function AdminCategoriesPage() {
           <select
             className="w-full rounded-2xl border border-[var(--border)] bg-white/90 px-4 py-3 text-sm text-[var(--text)] shadow-sm transition focus:border-[var(--primary)] focus:outline-none focus:ring-2 focus:ring-[rgba(15,118,110,0.18)]"
             value={sortOrder}
-            onChange={(event) => setSortOrder(event.target.value)}
+            onChange={(event) => {
+              setSortOrder(event.target.value);
+              setPage(1);
+            }}
           >
             <option value="name">A–Z</option>
             <option value="-name">Z–A</option>
@@ -123,8 +128,9 @@ export default function AdminCategoriesPage() {
       </div>
 
       {categories.length ? (
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-          {categories.map((category) => (
+        <div className="space-y-6">
+          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+            {categories.map((category) => (
             <Card key={category?._id || category?.id} className="space-y-4">
               <div>
                 <h2 className="text-lg font-semibold text-[var(--text)]">
@@ -140,7 +146,9 @@ export default function AdminCategoriesPage() {
                 </Button>
               </div>
             </Card>
-          ))}
+            ))}
+          </div>
+          <CatalogPagination meta={categoriesQuery.data?.meta} onPageChange={setPage} />
         </div>
       ) : (
         <EmptyState

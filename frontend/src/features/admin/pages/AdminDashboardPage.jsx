@@ -4,13 +4,7 @@ import Button from "../../../components/ui/Button.jsx";
 import { Card } from "../../../components/ui/Card.jsx";
 import ErrorState from "../../../components/ui/ErrorState.jsx";
 import LoadingState from "../../../components/ui/LoadingState.jsx";
-import {
-  useBrands,
-  useCategories,
-  useProducts,
-  useSubcategories,
-} from "../../catalog/hooks/useCatalogQueries.js";
-import { getAdminOrders } from "../api/admin.api.js";
+import { getAdminDashboardStats } from "../api/admin.api.js";
 import { useQuery } from "@tanstack/react-query";
 
 const collections = [
@@ -22,43 +16,26 @@ const collections = [
 ];
 
 export default function AdminDashboardPage() {
-  const productsQuery = useProducts({ limit: 1 });
-  const categoriesQuery = useCategories({ limit: 1 });
-  const subcategoriesQuery = useSubcategories({ limit: 1 });
-  const brandsQuery = useBrands({ limit: 1 });
-  const ordersQuery = useQuery({
-    queryKey: ["admin", "orders", "dashboard"],
-    queryFn: () => getAdminOrders({ limit: 1 }),
+  const statsQuery = useQuery({
+    queryKey: ["admin", "dashboard", "stats"],
+    queryFn: getAdminDashboardStats,
   });
-  const queries = [
-    productsQuery,
-    categoriesQuery,
-    subcategoriesQuery,
-    brandsQuery,
-    ordersQuery,
-  ];
 
-  if (queries.some((query) => query.isLoading)) {
+  if (statsQuery.isLoading) {
     return <LoadingState label="Loading dashboard" />;
   }
 
-  if (queries.some((query) => query.isError)) {
+  if (statsQuery.isError) {
     return (
       <ErrorState
-        error={queries.find((query) => query.isError)?.error}
+        error={statsQuery.error}
         title="Could not load dashboard"
         onRetry={() => window.location.reload()}
       />
     );
   }
 
-  const counts = {
-    products: productsQuery.data?.meta?.pageCount ?? 0,
-    categories: categoriesQuery.data?.meta?.pageCount ?? 0,
-    subcategories: subcategoriesQuery.data?.meta?.pageCount ?? 0,
-    brands: brandsQuery.data?.meta?.pageCount ?? 0,
-    orders: ordersQuery.data?.meta?.pageCount ?? 0,
-  };
+  const counts = statsQuery.data ?? {};
 
   return (
     <div className="space-y-8">

@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useQueries } from "@tanstack/react-query";
 import { Link } from "react-router";
 import PageShell from "../../../components/layout/PageShell.jsx";
@@ -7,16 +7,22 @@ import Button from "../../../components/ui/Button.jsx";
 import LoadingState from "../../../components/ui/LoadingState.jsx";
 import ErrorState from "../../../components/ui/ErrorState.jsx";
 import EmptyState from "../../../components/ui/EmptyState.jsx";
+import Modal from "../../../components/ui/Modal.jsx";
+import CatalogPagination from "../../catalog/components/CatalogPagination.jsx";
 import { normalizeApiError } from "../../../api/error.js";
 import { useAuthSession } from "../../auth/hooks/useAuthSession.js";
 import { useUserOrders } from "../hooks/useOrderQueries.js";
+import { useCancelOrderMutation } from "../hooks/useOrderMutations.js";
 import OrderCard from "../components/OrderCard.jsx";
 import { getProducts } from "../../catalog/api/catalog.api.js";
 
 export default function OrdersPage() {
   const session = useAuthSession();
   const userId = session.user?.id;
-  const ordersQuery = useUserOrders(userId);
+  const [page, setPage] = useState(1);
+  const ordersQuery = useUserOrders(userId, { limit: 10, page, sort: "-dateOrdered" });
+  const cancelOrderMutation = useCancelOrderMutation(userId);
+  const [orderToCancel, setOrderToCancel] = useState(null);
   const isNoOrdersResponse =
     ordersQuery.isError && normalizeApiError(ordersQuery.error).status === 404;
 
@@ -60,6 +66,14 @@ export default function OrdersPage() {
       ),
     [productQueries, productTitles],
   );
+  const handleCancelOrder = async () => {
+    try {
+      await cancelOrderMutation.mutateAsync(orderToCancel?._id || orderToCancel?.id);
+      setOrderToCancel(null);
+    } catch {
+      // Mutation state is shown below the order list.
+    }
+  };
 
   if (ordersQuery.isLoading) {
     return (
@@ -111,9 +125,47 @@ export default function OrdersPage() {
             key={order?._id}
             order={order}
             productIdsByTitle={productIdsByTitle}
+            onCancel={setOrderToCancel}
+            isCancelling={
+              cancelOrderMutation.isPending &&
+              cancelOrderMutation.variables === (order?._id || order?.id)
+            }
           />
         ))}
       </div>
+
+      <CatalogPagination meta={ordersQuery.data?.meta} onPageChange={setPage} />
+
+      {cancelOrderMutation.isError ? (
+        <ErrorState error={cancelOrderMutation.error} title="Could not cancel order" />
+      ) : null}
+
+      <Modal
+        open={Boolean(orderToCancel)}
+        title="Cancel order?"
+        onClose={() => setOrderToCancel(null)}
+      >
+        <div className="space-y-5">
+          <p className="text-sm text-[var(--muted)]">
+            This will cancel your pending order. This action cannot be undone.
+          </p>
+          {cancelOrderMutation.isError ? (
+            <ErrorState error={cancelOrderMutation.error} title="Could not cancel order" />
+          ) : null}
+          <div className="flex justify-end gap-3">
+            <Button variant="secondary" onClick={() => setOrderToCancel(null)}>
+              Keep order
+            </Button>
+            <Button
+              variant="danger"
+              onClick={handleCancelOrder}
+              disabled={cancelOrderMutation.isPending}
+            >
+              {cancelOrderMutation.isPending ? "Cancelling..." : "Cancel order"}
+            </Button>
+          </div>
+        </div>
+      </Modal>
 
       <div className="flex flex-wrap gap-3">
         <Button as={Link} to="/products">

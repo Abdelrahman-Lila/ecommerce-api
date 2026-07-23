@@ -10,6 +10,11 @@ export const login = async (payload) => {
   return data;
 };
 
+export const getMyProfile = async () => {
+  const { data } = await apiClient.get("/users/me");
+  return data?.data ?? null;
+};
+
 export const updateUserProfile = async ({ userId, payload }) => {
   const { data } = await apiClient.put(`/users/${userId}`, payload);
   return data?.data ?? null;

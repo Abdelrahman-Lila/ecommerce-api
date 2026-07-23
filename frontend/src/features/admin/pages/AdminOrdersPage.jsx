@@ -8,8 +8,10 @@ import EmptyState from "../../../components/ui/EmptyState.jsx";
 import ErrorState from "../../../components/ui/ErrorState.jsx";
 import LoadingState from "../../../components/ui/LoadingState.jsx";
 import Modal from "../../../components/ui/Modal.jsx";
+import CatalogPagination from "../../catalog/components/CatalogPagination.jsx";
 import { formatCurrency } from "../../../lib/currency.js";
 import {
+  cancelAdminOrder,
   deleteAdminOrder,
   getAdminOrder,
   getAdminOrders,
@@ -23,6 +25,7 @@ const statusVariantMap = {
   Processing: "primary",
   Shipped: "neutral",
   Delivered: "success",
+  Cancelled: "danger",
 };
 
 const statuses = ["Pending", "Processing", "Shipped", "Delivered"];
@@ -35,9 +38,10 @@ export default function AdminOrdersPage() {
   const requestedOrderId = searchParams.get("orderId")?.trim() ?? "";
   const [orderIdSearch, setOrderIdSearch] = useState(requestedOrderId);
   const [searchedOrderId, setSearchedOrderId] = useState(requestedOrderId);
+  const [page, setPage] = useState(1);
   const ordersQuery = useQuery({
-    queryKey: ["admin", "orders"],
-    queryFn: () => getAdminOrders({ limit: 100, sort: "-dateOrdered" }),
+    queryKey: ["admin", "orders", { page }],
+    queryFn: () => getAdminOrders({ limit: 10, page, sort: "-dateOrdered" }),
   });
   const searchedOrderQuery = useQuery({
     queryKey: ["admin", "orders", "by-id", searchedOrderId],
@@ -71,11 +75,21 @@ export default function AdminOrdersPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin", "orders"] });
       queryClient.invalidateQueries({ queryKey: ["admin", "users"] });
+      queryClient.invalidateQueries({ queryKey: ["admin", "dashboard", "stats"] });
       queryClient.removeQueries({ queryKey: ["orders", "mine"] });
       setOrderIdSearch("");
       setSearchedOrderId("");
       setSearchParams({});
       setOrderToDelete(null);
+    },
+  });
+  const cancelMutation = useMutation({
+    mutationFn: cancelAdminOrder,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin", "orders"] });
+      queryClient.invalidateQueries({ queryKey: ["admin", "users"] });
+      queryClient.invalidateQueries({ queryKey: ["admin", "dashboard", "stats"] });
+      queryClient.removeQueries({ queryKey: ["orders", "mine"] });
     },
   });
   const orders = useMemo(
@@ -145,6 +159,13 @@ export default function AdminOrdersPage() {
       await deleteMutation.mutateAsync(orderToDelete?._id || orderToDelete?.id);
     } catch {
       // Mutation state renders the API error.
+    }
+  };
+  const handleCancel = async (orderId) => {
+    try {
+      await cancelMutation.mutateAsync(orderId);
+    } catch {
+      // Mutation state renders the API error below the relevant order.
     }
   };
 
@@ -227,6 +248,9 @@ export default function AdminOrdersPage() {
             const orderItems = order?.orderItems ?? [];
             const isUpdating =
               updateMutation.isPending && updateMutation.variables?.orderId === orderId;
+            const isCancelling =
+              cancelMutation.isPending && cancelMutation.variables === orderId;
+            const isCancelled = order?.status === "Cancelled";
 
             return (
               <Card key={orderId} className="space-y-5">
@@ -311,25 +335,46 @@ export default function AdminOrdersPage() {
                       id={`order-status-${orderId}`}
                       className={selectClassName}
                       value={order?.status || "Pending"}
-                      disabled={isUpdating}
+                      disabled={isUpdating || isCancelled}
                       onChange={(event) => handleStatusChange(orderId, event.target.value)}
                     >
+                      {isCancelled ? <option value="Cancelled">Cancelled</option> : null}
                       {statuses.map((status) => (
                         <option key={status} value={status}>{status}</option>
                       ))}
                     </select>
                   </div>
-                  <Button variant="danger" size="sm" onClick={() => setOrderToDelete(order)}>
-                    Delete order
-                  </Button>
+                  <div className="flex flex-wrap gap-3">
+                    {order?.status === "Pending" ? (
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        onClick={() => handleCancel(orderId)}
+                        disabled={isCancelling}
+                      >
+                        {isCancelling ? "Cancelling..." : "Cancel order"}
+                      </Button>
+                    ) : null}
+                    {order?.status === "Cancelled" ? (
+                      <Button variant="danger" size="sm" onClick={() => setOrderToDelete(order)}>
+                        Delete order
+                      </Button>
+                    ) : null}
+                  </div>
                 </div>
 
                 {updateMutation.isError && updateMutation.variables?.orderId === orderId ? (
                   <ErrorState error={updateMutation.error} title="Could not update order status" />
                 ) : null}
+                {cancelMutation.isError && cancelMutation.variables === orderId ? (
+                  <ErrorState error={cancelMutation.error} title="Could not cancel order" />
+                ) : null}
               </Card>
             );
           })}
+          {!searchedOrderId ? (
+            <CatalogPagination meta={ordersQuery.data?.meta} onPageChange={setPage} />
+          ) : null}
         </div>
       ) : (
         <EmptyState
