@@ -23,22 +23,25 @@ const getOne = (Model) =>
 
 const getAll = (Model, modelType = "") =>
   asyncHandler(async (req, res) => {
-    const numberofDocuments = await Model.countDocuments();
-
     let filter = {};
     if (req.filterObject) filter = req.filterObject;
 
     let modelApi = new ApiFeatures(Model.find(filter), req.query)
-      .paginate(numberofDocuments)
-      .sort()
       .filter()
-      .limitFields()
       .keywordSearch(modelType);
+
+    const totalCount = await Model.countDocuments(modelApi.mongooseQuery.getFilter());
+
+    modelApi
+      .sort()
+      .paginate(totalCount)
+      .limitFields();
 
     const { mongooseQuery, paginationResult } = modelApi;
 
     const documents = await mongooseQuery;
     res.send({
+      totalCount,
       "Number of documents": documents.length,
       "current page": paginationResult.currentPage,
       "Number of Pages": paginationResult.numberOfPages,

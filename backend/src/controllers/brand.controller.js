@@ -2,7 +2,9 @@ import asyncHandler from "express-async-handler";
 import fs from "fs";
 import path from "path";
 import Brand from "../models/brand.model.js";
+import Product from "../models/product.model.js";
 import * as factory from "./factory-handler.controller.js";
+import ApiError from "../utils/api-error.js";
 
 const getBrands = factory.getAll(Brand);
 
@@ -29,6 +31,13 @@ const deleteBrand = asyncHandler(async (req, res, next) => {
 
   if (!brand) {
     return next(new ApiError("Requested brand not found", 404));
+  }
+
+  const productCount = await Product.countDocuments({ brand: id });
+  if (productCount) {
+    return next(
+      new ApiError("This brand is still used by products and cannot be deleted", 409),
+    );
   }
 
   if (brand.image) {

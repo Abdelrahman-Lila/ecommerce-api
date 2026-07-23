@@ -55,7 +55,15 @@ const login = asyncHandler(async (req, res, next) => {
 });
 
 const getUser = asyncHandler(async (req, res, next) => {
-  const user = await User.findById(req.params.id);
+  const user = await User.findOne({ _id: req.params.id, isDeleted: { $ne: true } });
+  if (!user) {
+    return next(new ApiError("Requested user not found", 404));
+  }
+  res.status(200).json({ status: "success", data: user });
+});
+
+const getMyData = asyncHandler(async (req, res, next) => {
+  const user = await User.findById(req.auth.id);
   if (!user) {
     return next(new ApiError("Requested user not found", 404));
   }
@@ -63,19 +71,34 @@ const getUser = asyncHandler(async (req, res, next) => {
 });
 
 const getUsers = asyncHandler(async (req, res) => {
-  const numberofUsers = await User.countDocuments();
-
-  let userApi = new ApiFeatures(User.find(), req.query)
-    .paginate(numberofUsers)
-    .sort()
+  const { email, ...queryWithoutEmail } = req.query;
+  const filter = {
+    isDeleted: { $ne: true },
+    ...(email
+    ? {
+        email: {
+          $regex: email.trim(),
+          $options: "i",
+        },
+      }
+    : {}),
+  };
+  const userApi = new ApiFeatures(User.find(filter), queryWithoutEmail)
     .filter()
-    .limitFields()
     .keywordSearch("");
+
+  const totalCount = await User.countDocuments(userApi.mongooseQuery.getFilter());
+
+  userApi
+    .sort()
+    .paginate(totalCount)
+    .limitFields();
 
   const { mongooseQuery, paginationResult } = userApi;
 
   const users = await mongooseQuery;
   res.send({
+    totalCount,
     "Number of users": users.length,
     "current page": paginationResult.currentPage,
     "Number of Pages": paginationResult.numberOfPages,
@@ -141,12 +164,40 @@ const updateUser = asyncHandler(async (req, res, next) => {
 const deleteUser = asyncHandler(async (req, res, next) => {
   if (!ensureUserCanManageAccount(req, next)) return;
 
-  const user = await User.findByIdAndDelete(req.params.id);
+  const user = await User.findOne({ _id: req.params.id, isDeleted: { $ne: true } });
   if (!user) {
     return next(new ApiError("Requested user not found", 404));
   }
 
-  res.status(200).json({ status: "success", message: `Account Deleted` });
+  const anonymizedEmail = `deleted-${user._id}@deleted.local`;
+  user.set({
+    firstName: "Deleted",
+    lastName: "User",
+    name: "Deleted user",
+    email: anonymizedEmail,
+    phone: "Deleted",
+    street: "",
+    apartment: "",
+    city: "",
+    country: "",
+    password: await bcrypt.hash(`${user._id}-${Date.now()}`, 10),
+    isDeleted: true,
+    deletedAt: new Date(),
+  });
+  await user.save();
+
+  res.status(200).json({
+    status: "success",
+    message: "Account deleted and personal data anonymized",
+  });
 });
 
-export { register, login, getUser, getUsers, updateUser, deleteUser };
+export {
+  register,
+  login,
+  getUser,
+  getMyData,
+  getUsers,
+  updateUser,
+  deleteUser,
+};

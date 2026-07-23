@@ -17,4 +17,6 @@ router
 
 router.route(`/get/userorders/:userid`).get(orderController.getUserOrders);
 
+router.route("/:id/cancel").put(orderController.cancelOrder);
+
 export default router;
