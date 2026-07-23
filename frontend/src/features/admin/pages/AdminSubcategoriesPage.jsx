@@ -8,6 +8,7 @@ import ErrorState from "../../../components/ui/ErrorState.jsx";
 import Input from "../../../components/ui/Input.jsx";
 import LoadingState from "../../../components/ui/LoadingState.jsx";
 import Modal from "../../../components/ui/Modal.jsx";
+import CatalogPagination from "../../catalog/components/CatalogPagination.jsx";
 import {
   createSubcategory,
   deleteSubcategory,
@@ -25,8 +26,10 @@ export default function AdminSubcategoriesPage() {
   const queryClient = useQueryClient();
   const categoriesQuery = useCategories({ limit: 100, sort: "name" });
   const [categoryFilterId, setCategoryFilterId] = useState("");
+  const [page, setPage] = useState(1);
   const subcategoriesQuery = useSubcategories({
-    limit: 100,
+    limit: 12,
+    page,
     sort: "name",
     ...(categoryFilterId ? { category: categoryFilterId } : {}),
   });
@@ -136,7 +139,10 @@ export default function AdminSubcategoriesPage() {
           <select
             className={selectClassName}
             value={categoryFilterId}
-            onChange={(event) => setCategoryFilterId(event.target.value)}
+            onChange={(event) => {
+              setCategoryFilterId(event.target.value);
+              setPage(1);
+            }}
           >
             <option value="">All categories</option>
             {categories.map((category) => (
@@ -156,8 +162,9 @@ export default function AdminSubcategoriesPage() {
           onAction={() => window.location.assign("/admin/categories")}
         />
       ) : subcategories.length ? (
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-          {subcategories.map((subcategory) => {
+        <div className="space-y-6">
+          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+            {subcategories.map((subcategory) => {
             const parentId =
               subcategory?.category?._id || subcategory?.category || "";
             const parentName =
@@ -183,14 +190,19 @@ export default function AdminSubcategoriesPage() {
                 </div>
               </Card>
             );
-          })}
+            })}
+          </div>
+          <CatalogPagination meta={subcategoriesQuery.data?.meta} onPageChange={setPage} />
         </div>
       ) : (
         <EmptyState
           title={categoryFilterId ? "No subcategories in this category" : "No subcategories yet"}
           description={categoryFilterId ? "Choose another category or clear the filter." : "Create a subcategory to organize products more precisely."}
           actionLabel={categoryFilterId ? "Clear filter" : "Add subcategory"}
-          onAction={categoryFilterId ? () => setCategoryFilterId("") : openCreate}
+          onAction={categoryFilterId ? () => {
+            setCategoryFilterId("");
+            setPage(1);
+          } : openCreate}
         />
       )}
 

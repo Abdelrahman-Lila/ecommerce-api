@@ -9,19 +9,19 @@ const statusVariantMap = {
   Processing: "primary",
   Shipped: "neutral",
   Delivered: "success",
+  Cancelled: "danger",
 };
 
-export default function OrderCard({ order, productIdsByTitle = {} }) {
+export default function OrderCard({ order, productIdsByTitle = {}, onCancel, isCancelling = false }) {
   const orderItems = order?.orderItems ?? [];
-  const firstItem = orderItems[0]?.product;
+  const orderId = order?._id || order?.id;
 
   return (
     <Card className="space-y-5">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <p className="text-sm text-[var(--muted)]">Order #{order?._id}</p>
           <h3 className="text-xl font-semibold text-[var(--text)]">
-            {firstItem?.title ?? "Order summary"}
+            Order #{orderId}
           </h3>
         </div>
         <Badge variant={statusVariantMap[order?.status] ?? "neutral"}>
@@ -95,6 +95,14 @@ export default function OrderCard({ order, productIdsByTitle = {} }) {
           );
         })}
       </div>
+
+      {order?.status === "Pending" && onCancel ? (
+        <div className="flex justify-end border-t border-[var(--border)] pt-4">
+          <Button variant="danger" size="sm" onClick={() => onCancel(order)} disabled={isCancelling}>
+            {isCancelling ? "Cancelling..." : "Cancel order"}
+          </Button>
+        </div>
+      ) : null}
     </Card>
   );
 }

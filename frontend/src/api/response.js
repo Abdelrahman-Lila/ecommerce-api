@@ -2,6 +2,7 @@ const getCollectionMeta = (payload) => ({
   currentPage: payload?.["current page"] ?? 1,
   pageCount: payload?.["Number of Pages"] ?? 1,
   totalCount:
+    payload?.totalCount ??
     payload?.["Number of documents"] ??
     payload?.["Number of orders"] ??
     payload?.["Number of users"] ??

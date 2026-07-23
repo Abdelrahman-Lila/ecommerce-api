@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link } from "react-router";
 import Badge from "../../../components/ui/Badge.jsx";
@@ -9,6 +9,7 @@ import ErrorState from "../../../components/ui/ErrorState.jsx";
 import Input from "../../../components/ui/Input.jsx";
 import LoadingState from "../../../components/ui/LoadingState.jsx";
 import Modal from "../../../components/ui/Modal.jsx";
+import CatalogPagination from "../../catalog/components/CatalogPagination.jsx";
 import { formatCurrency } from "../../../lib/currency.js";
 import { getUserOrders } from "../../orders/api/orders.api.js";
 import {
@@ -32,15 +33,31 @@ const getFormValues = (user) => ({
 
 export default function AdminUsersPage() {
   const queryClient = useQueryClient();
+  const [emailSearch, setEmailSearch] = useState("");
+  const [debouncedEmailSearch, setDebouncedEmailSearch] = useState("");
+  const [page, setPage] = useState(1);
+  useEffect(() => {
+    const timeoutId = window.setTimeout(() => {
+      setDebouncedEmailSearch(emailSearch.trim());
+      setPage(1);
+    }, 350);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [emailSearch]);
   const usersQuery = useQuery({
-    queryKey: ["admin", "users"],
-    queryFn: () => getUsers({ limit: 100, sort: "-createdAt" }),
+    queryKey: ["admin", "users", { email: debouncedEmailSearch, page }],
+    queryFn: () =>
+      getUsers({
+        limit: 12,
+        page,
+        sort: "-createdAt",
+        ...(debouncedEmailSearch ? { email: debouncedEmailSearch } : {}),
+      }),
   });
   const [editor, setEditor] = useState(null);
   const [form, setForm] = useState(getFormValues());
   const [userToDelete, setUserToDelete] = useState(null);
   const [ordersUser, setOrdersUser] = useState(null);
-  const [emailSearch, setEmailSearch] = useState("");
   const userOrdersQuery = useQuery({
     queryKey: ["admin", "users", getUserId(ordersUser), "orders"],
     queryFn: () => getUserOrders(getUserId(ordersUser)),
@@ -106,9 +123,7 @@ export default function AdminUsersPage() {
     );
   }
 
-  const users = (usersQuery.data?.items ?? []).filter((user) =>
-    user?.email?.toLocaleLowerCase().includes(emailSearch.trim().toLocaleLowerCase()),
-  );
+  const users = usersQuery.data?.items ?? [];
 
   return (
     <div className="space-y-8">
@@ -133,8 +148,9 @@ export default function AdminUsersPage() {
       </div>
 
       {users.length ? (
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-          {users.map((user) => (
+        <div className="space-y-6">
+          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+            {users.map((user) => (
             <Card key={getUserId(user)} className="space-y-4">
               <div className="space-y-1">
                 <div className="flex items-center justify-between gap-3">
@@ -165,7 +181,9 @@ export default function AdminUsersPage() {
                 </Button>
               </div>
             </Card>
-          ))}
+            ))}
+          </div>
+          <CatalogPagination meta={usersQuery.data?.meta} onPageChange={setPage} />
         </div>
       ) : (
         <EmptyState

@@ -5,7 +5,7 @@ export const orderKeys = {
   all: ["orders"],
   list: (params) => [...orderKeys.all, "list", params],
   detail: (orderId) => [...orderKeys.all, "detail", orderId],
-  mine: (userId) => [...orderKeys.all, "mine", userId],
+  mine: (userId, params) => [...orderKeys.all, "mine", userId, params],
 };
 
 export const useOrders = (params) =>
@@ -21,10 +21,10 @@ export const useOrder = (orderId) =>
     enabled: Boolean(orderId),
   });
 
-export const useUserOrders = (userId) =>
+export const useUserOrders = (userId, params = {}) =>
   useQuery({
-    queryKey: orderKeys.mine(userId),
-    queryFn: () => getUserOrders(userId),
+    queryKey: orderKeys.mine(userId, params),
+    queryFn: () => getUserOrders(userId, params),
     enabled: Boolean(userId),
     staleTime: 0,
     refetchOnMount: "always",

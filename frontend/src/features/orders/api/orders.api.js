@@ -9,9 +9,9 @@ export const createOrder = async (payload) => {
   return unwrapResponseData(data);
 };
 
-export const getUserOrders = async (userId) => {
+export const getUserOrders = async (userId, params = {}) => {
   try {
-    const { data } = await apiClient.get(`/orders/get/userorders/${userId}`);
+    const { data } = await apiClient.get(`/orders/get/userorders/${userId}`, { params });
     return normalizeCollectionResponse(data, "orders");
   } catch (error) {
     if (error?.response?.status === 404) {
@@ -29,5 +29,10 @@ export const getOrders = async (params = {}) => {
 
 export const getOrder = async (orderId) => {
   const { data } = await apiClient.get(`/orders/${orderId}`);
+  return unwrapResponseData(data);
+};
+
+export const cancelOrder = async (orderId) => {
+  const { data } = await apiClient.put(`/orders/${orderId}/cancel`);
   return unwrapResponseData(data);
 };
