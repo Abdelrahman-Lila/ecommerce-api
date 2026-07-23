@@ -1,4 +1,4 @@
-import mongoose, { mongo } from "mongoose";
+import mongoose from "mongoose";
 
 const productSchema = new mongoose.Schema(
   {
@@ -23,15 +23,18 @@ const productSchema = new mongoose.Schema(
     quantity: {
       type: Number,
       required: true,
+      min: [0, "Quantity cannot be negative"],
     },
     sold: {
       type: Number,
       default: 0,
+      min: [0, "Sold quantity cannot be negative"],
     },
     price: {
       type: Number,
       required: true,
       trim: true,
+      min: [0, "Price cannot be negative"],
     },
     priceAfterDiscount: {
       type: Number,
@@ -77,6 +80,10 @@ productSchema.pre(/^find/, function () {
     { path: "brand", select: "name -_id" },
   ]);
 });
+
+productSchema.index({ category: 1 });
+productSchema.index({ brand: 1 });
+productSchema.index({ subcategories: 1 });
 
 const productModel = new mongoose.model("Product", productSchema);
 

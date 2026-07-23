@@ -6,6 +6,8 @@ const router = express.Router();
 
 router.route("/").get(requireAdmin, userController.getUsers);
 
+router.route("/me").get(userController.getMyData);
+
 router
   .route("/:id")
   .get(requireAdmin, userController.getUser)

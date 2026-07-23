@@ -1,4 +1,5 @@
 import Product from "../models/product.model.js";
+import OrderItem from "../models/order-item.model.js";
 import asyncHandler from "express-async-handler";
 import ApiError from "../utils/api-error.js";
 import ApiFeatures from "../utils/api-features.js";
@@ -42,6 +43,16 @@ const uploadImageGallery = asyncHandler(async (req, res, next) => {
   );
   if (!product) {
     return next(new ApiError("Requested product not found", 404));
+  }
+
+  const orderItemCount = await OrderItem.countDocuments({ product: id });
+  if (orderItemCount) {
+    return next(
+      new ApiError(
+        "This product belongs to existing orders and cannot be deleted",
+        409,
+      ),
+    );
   }
   res.status(200).json({
     status: "success",
