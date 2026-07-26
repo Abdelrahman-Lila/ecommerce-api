@@ -23,7 +23,34 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
-app.use(cors());
+const allowedCorsOrigins = (process.env.CORS_ORIGIN || "")
+  .split(",")
+  .map((origin) => origin.trim())
+  .filter(Boolean);
+
+if (allowedCorsOrigins.length > 0) {
+  app.use(
+    cors({
+      origin(origin, callback) {
+        if (!origin || allowedCorsOrigins.includes(origin)) {
+          return callback(null, true);
+        }
+        return callback(
+          new ApiError("This origin is not allowed by CORS", 403),
+        );
+      },
+      methods: ["GET", "POST", "PUT", "DELETE"],
+      allowedHeaders: ["Authorization"],
+    }),
+  );
+}
+
+app.set("trust proxy", 1);
+
+app.get("/api/health", (req, res) => {
+  res.status(200).json({ status: "ok" });
+});
+
 app.use(express.json());
 app.use(
   "/uploads/products",
@@ -73,4 +100,9 @@ process.on("unhandledRejection", (err) => {
     console.error(`SHUTTING SERVER DOWN....`);
     process.exit(1);
   });
+});
+
+process.on("SIGTERM", () => {
+  console.log("SIGTERM received. Shutting down gracefully.");
+  server.close(() => process.exit(0));
 });

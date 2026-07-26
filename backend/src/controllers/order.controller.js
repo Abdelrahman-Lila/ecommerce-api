@@ -100,10 +100,10 @@ const getOrder = asyncHandler(async (req, res, next) => {
   const order = await Order.findById(req.params.id)
     .populate({
       path: "orderItems",
-      select: "-_id -__v",
+      select: "-__v",
       populate: {
         path: "product",
-        select: "title -_id",
+        select: "title",
         populate: { path: "category", select: "name -_id" },
       },
     })
@@ -132,10 +132,10 @@ const getOrders = asyncHandler(async (req, res) => {
   mongooseQuery
     .populate({
       path: "orderItems",
-      select: "-_id -__v",
+      select: "-__v",
       populate: {
         path: "product",
-        select: "title -_id",
+        select: "title",
         populate: { path: "category", select: "name -_id" },
       },
     })
@@ -225,6 +225,98 @@ const cancelOrder = asyncHandler(async (req, res, next) => {
   });
 });
 
+const rateOrderItem = asyncHandler(async (req, res, next) => {
+  const { id: orderId, itemId } = req.params;
+  const rating = Number(req.body.rating);
+
+  if (!Number.isInteger(rating) || rating < 1 || rating > 5) {
+    return next(new ApiError("Rating must be a whole number from 1 to 5", 400));
+  }
+
+  const session = await Product.startSession();
+  let updatedProduct;
+
+  try {
+    await session.withTransaction(async () => {
+      const order = await Order.findById(orderId)
+        .populate("orderItems")
+        .session(session);
+
+      if (!order) throw new ApiError("Order not found", 404);
+      if (order.user.toString() !== req.auth?.id?.toString()) {
+        throw new ApiError("You are not authorized to rate this order", 403);
+      }
+      if (order.status !== "Delivered") {
+        throw new ApiError("Only delivered orders can be rated", 409);
+      }
+
+      const orderItem = order.orderItems.find(
+        (item) => item._id.toString() === itemId,
+      );
+      if (!orderItem) throw new ApiError("Order item not found in this order", 404);
+      if (orderItem.rating != null) {
+        throw new ApiError("This item has already been rated", 409);
+      }
+
+      const ratingResult = await OrderItem.updateOne(
+        { _id: itemId, rating: { $exists: false } },
+        { $set: { rating } },
+        { session },
+      );
+      if (ratingResult.modifiedCount !== 1) {
+        throw new ApiError("This item has already been rated", 409);
+      }
+
+      updatedProduct = await Product.findByIdAndUpdate(
+        orderItem.product,
+        [
+          {
+            $set: {
+              rating: {
+                $divide: [
+                  {
+                    $add: [
+                      {
+                        $multiply: [
+                          { $ifNull: ["$rating", 0] },
+                          { $ifNull: ["$ratingsCount", 0] },
+                        ],
+                      },
+                      rating,
+                    ],
+                  },
+                  { $add: [{ $ifNull: ["$ratingsCount", 0] }, 1] },
+                ],
+              },
+              ratingsCount: { $add: [{ $ifNull: ["$ratingsCount", 0] }, 1] },
+            },
+          },
+        ],
+        { new: true, session, updatePipeline: true },
+      );
+      if (!updatedProduct) {
+        throw new ApiError("Product for this order item was not found", 404);
+      }
+    });
+  } finally {
+    await session.endSession();
+  }
+
+  res.status(200).json({
+    status: "success",
+    message: "Rating submitted successfully",
+    data: {
+      orderItemId: itemId,
+      rating,
+      product: {
+        id: updatedProduct._id,
+        rating: updatedProduct.rating,
+        ratingsCount: updatedProduct.ratingsCount,
+      },
+    },
+  });
+});
+
 const deleteOrder = asyncHandler(async (req, res, next) => {
   const { id } = req.params;
   const order = await Order.findById(id);
@@ -277,10 +369,10 @@ const getUserOrders = asyncHandler(async (req, res, next) => {
   const userOrderList = await orderApi.mongooseQuery
     .populate({
       path: "orderItems",
-      select: "-_id -__v",
+      select: "-__v",
       populate: {
         path: "product",
-        select: "title -_id",
+        select: "title",
         populate: { path: "category", select: "name -_id" },
       },
     })
@@ -315,4 +407,5 @@ export {
   deleteOrder,
   getUserOrders,
   cancelOrder,
+  rateOrderItem,
 };
