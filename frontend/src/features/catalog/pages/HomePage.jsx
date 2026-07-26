@@ -53,11 +53,10 @@ export default function HomePage() {
     <PageShell className="space-y-12 py-8 sm:py-12">
       <CatalogHero />
 
-      <section className="space-y-6">
+      <section id="categories" className="scroll-mt-6 space-y-6">
         <CollectionHeader
           eyebrow="Categories"
           title="Browse by category"
-          description="Use the category pages to narrow product discovery and drill into subcategory filters."
         />
         {categories.length ? (
           <EntityGrid
@@ -76,12 +75,16 @@ export default function HomePage() {
         )}
       </section>
 
-      <section className="space-y-6">
-        <CollectionHeader
-          eyebrow="Brands"
-          title="Browse by brand"
-          description="Jump straight into branded product collections."
-        />
+      <section id="brands" className="scroll-mt-6 space-y-6">
+        <div className="flex flex-wrap items-end justify-between gap-4">
+          <CollectionHeader
+            eyebrow="Brands"
+            title="Browse by brand"
+          />
+          <Button as={Link} to="/brands" variant="secondary">
+            View all brands
+          </Button>
+        </div>
         {brands.length ? (
           <EntityGrid
             entities={brands}
@@ -103,7 +106,6 @@ export default function HomePage() {
           <CollectionHeader
             eyebrow="Latest products"
             title="Fresh product picks"
-            description="A small sample from the product catalog using the backend collection response."
             meta={productsQuery.data?.meta}
           />
           <Button as={Link} to="/products" variant="secondary">

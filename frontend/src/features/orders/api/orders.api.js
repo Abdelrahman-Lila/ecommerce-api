@@ -36,3 +36,11 @@ export const cancelOrder = async (orderId) => {
   const { data } = await apiClient.put(`/orders/${orderId}/cancel`);
   return unwrapResponseData(data);
 };
+
+export const rateOrderItem = async ({ orderId, orderItemId, rating }) => {
+  const { data } = await apiClient.put(
+    `/orders/${orderId}/items/${orderItemId}/rating`,
+    { rating },
+  );
+  return unwrapResponseData(data);
+};

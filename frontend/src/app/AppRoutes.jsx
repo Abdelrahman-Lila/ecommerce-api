@@ -8,6 +8,7 @@ import HomePage from "../features/catalog/pages/HomePage.jsx";
 import ProductsPage from "../features/catalog/pages/ProductsPage.jsx";
 import CategoryPage from "../features/catalog/pages/CategoryPage.jsx";
 import BrandPage from "../features/catalog/pages/BrandPage.jsx";
+import BrandsPage from "../features/catalog/pages/BrandsPage.jsx";
 import ProductDetailPage from "../features/catalog/pages/ProductDetailPage.jsx";
 import LoginPage from "../features/auth/pages/LoginPage.jsx";
 import RegisterPage from "../features/auth/pages/RegisterPage.jsx";
@@ -61,6 +62,7 @@ export default function AppRoutes() {
         <Route path="products" element={<ProductsPage />} />
         <Route path="products/:productId" element={<ProductDetailPage />} />
         <Route path="categories/:categoryId" element={<CategoryPage />} />
+        <Route path="brands" element={<BrandsPage />} />
         <Route path="brands/:brandId" element={<BrandPage />} />
         <Route path="cart" element={<CartPage />} />
       </Route>
