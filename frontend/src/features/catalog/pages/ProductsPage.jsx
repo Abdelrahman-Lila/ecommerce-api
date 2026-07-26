@@ -117,7 +117,6 @@ export default function ProductsPage() {
       <CollectionHeader
         eyebrow="Products"
         title="Browse the full catalog"
-        description="Search, sort, paginate, and narrow products using the backend query features."
         meta={meta}
       />
 

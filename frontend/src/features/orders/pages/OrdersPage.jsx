@@ -12,7 +12,10 @@ import CatalogPagination from "../../catalog/components/CatalogPagination.jsx";
 import { normalizeApiError } from "../../../api/error.js";
 import { useAuthSession } from "../../auth/hooks/useAuthSession.js";
 import { useUserOrders } from "../hooks/useOrderQueries.js";
-import { useCancelOrderMutation } from "../hooks/useOrderMutations.js";
+import {
+  useCancelOrderMutation,
+  useRateOrderItemMutation,
+} from "../hooks/useOrderMutations.js";
 import OrderCard from "../components/OrderCard.jsx";
 import { getProducts } from "../../catalog/api/catalog.api.js";
 
@@ -23,6 +26,9 @@ export default function OrdersPage() {
   const ordersQuery = useUserOrders(userId, { limit: 10, page, sort: "-dateOrdered" });
   const cancelOrderMutation = useCancelOrderMutation(userId);
   const [orderToCancel, setOrderToCancel] = useState(null);
+  const rateOrderItemMutation = useRateOrderItemMutation(userId);
+  const [ratingTarget, setRatingTarget] = useState(null);
+  const [selectedRating, setSelectedRating] = useState(5);
   const isNoOrdersResponse =
     ordersQuery.isError && normalizeApiError(ordersQuery.error).status === 404;
 
@@ -72,6 +78,27 @@ export default function OrdersPage() {
       setOrderToCancel(null);
     } catch {
       // Mutation state is shown below the order list.
+    }
+  };
+
+  const openRatingModal = (order, orderItem) => {
+    setRatingTarget({ order, orderItem });
+    setSelectedRating(5);
+  };
+
+  const handleRateOrderItem = async () => {
+    if (!ratingTarget) return;
+
+    try {
+      await rateOrderItemMutation.mutateAsync({
+        orderId: ratingTarget.order?._id || ratingTarget.order?.id,
+        orderItemId:
+          ratingTarget.orderItem?._id || ratingTarget.orderItem?.id,
+        rating: selectedRating,
+      });
+      setRatingTarget(null);
+    } catch {
+      // Mutation state is shown in the rating modal.
     }
   };
 
@@ -126,6 +153,7 @@ export default function OrdersPage() {
             order={order}
             productIdsByTitle={productIdsByTitle}
             onCancel={setOrderToCancel}
+            onRate={openRatingModal}
             isCancelling={
               cancelOrderMutation.isPending &&
               cancelOrderMutation.variables === (order?._id || order?.id)
@@ -162,6 +190,48 @@ export default function OrdersPage() {
               disabled={cancelOrderMutation.isPending}
             >
               {cancelOrderMutation.isPending ? "Cancelling..." : "Cancel order"}
+            </Button>
+          </div>
+        </div>
+      </Modal>
+
+      <Modal
+        open={Boolean(ratingTarget)}
+        title="Rate your product"
+        onClose={() => setRatingTarget(null)}
+      >
+        <div className="space-y-5">
+          <p className="text-sm text-[var(--muted)]">
+            How would you rate {ratingTarget?.orderItem?.product?.title ?? "this product"}?
+          </p>
+          <div className="flex flex-wrap gap-2" aria-label="Choose a rating from 1 to 5">
+            {[1, 2, 3, 4, 5].map((rating) => (
+              <Button
+                key={rating}
+                variant={selectedRating === rating ? "primary" : "secondary"}
+                size="sm"
+                onClick={() => setSelectedRating(rating)}
+                aria-pressed={selectedRating === rating}
+              >
+                {rating} star{rating === 1 ? "" : "s"}
+              </Button>
+            ))}
+          </div>
+          {rateOrderItemMutation.isError ? (
+            <ErrorState
+              error={rateOrderItemMutation.error}
+              title="Could not submit rating"
+            />
+          ) : null}
+          <div className="flex justify-end gap-3">
+            <Button variant="secondary" onClick={() => setRatingTarget(null)}>
+              Cancel
+            </Button>
+            <Button
+              onClick={handleRateOrderItem}
+              disabled={rateOrderItemMutation.isPending}
+            >
+              {rateOrderItemMutation.isPending ? "Submitting..." : "Submit rating"}
             </Button>
           </div>
         </div>

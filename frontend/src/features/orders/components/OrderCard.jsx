@@ -12,7 +12,13 @@ const statusVariantMap = {
   Cancelled: "danger",
 };
 
-export default function OrderCard({ order, productIdsByTitle = {}, onCancel, isCancelling = false }) {
+export default function OrderCard({
+  order,
+  productIdsByTitle = {},
+  onCancel,
+  onRate,
+  isCancelling = false,
+}) {
   const orderItems = order?.orderItems ?? [];
   const orderId = order?._id || order?.id;
 
@@ -79,18 +85,33 @@ export default function OrderCard({ order, productIdsByTitle = {}, onCancel, isC
                   Qty {orderItem?.quantity ?? 0}
                 </p>
               </div>
-              <Button
-                as={Link}
-                to={
-                  productId
-                    ? `/products/${productId}`
-                    : `/products?keyword=${encodeURIComponent(product?.title ?? "")}`
-                }
-                variant="ghost"
-                size="sm"
-              >
-                {productId ? "View" : "Find"}
-              </Button>
+              <div className="flex flex-wrap items-center justify-end gap-2">
+                {order?.status === "Delivered" && onRate ? (
+                  orderItem?.rating != null ? (
+                    <Badge variant="success">Rated {orderItem.rating}/5</Badge>
+                  ) : (
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      onClick={() => onRate(order, orderItem)}
+                    >
+                      Rate product
+                    </Button>
+                  )
+                ) : null}
+                <Button
+                  as={Link}
+                  to={
+                    productId
+                      ? `/products/${productId}`
+                      : `/products?keyword=${encodeURIComponent(product?.title ?? "")}`
+                  }
+                  variant="ghost"
+                  size="sm"
+                >
+                  {productId ? "View" : "Find"}
+                </Button>
+              </div>
             </div>
           );
         })}
