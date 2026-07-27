@@ -1,0 +1,7 @@
+www.marketlane.me {
+    redir https://marketlane.me{uri} permanent
+}
+
+marketlane.me {
+    reverse_proxy web:80
+}
