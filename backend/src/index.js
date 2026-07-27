@@ -45,7 +45,7 @@ if (allowedCorsOrigins.length > 0) {
   );
 }
 
-app.set("trust proxy", 1);
+app.set("trust proxy", 2);
 
 app.get("/api/health", (req, res) => {
   res.status(200).json({ status: "ok" });
