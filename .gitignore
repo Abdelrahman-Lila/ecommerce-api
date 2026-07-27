@@ -152,3 +152,4 @@ backend/uploads/
 
 scripts
 .vscode
+*.gz
