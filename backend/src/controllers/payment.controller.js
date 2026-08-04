@@ -1,6 +1,7 @@
 import asyncHandler from "express-async-handler";
 import Stripe from "stripe";
 import "dotenv/config";
+import { randomUUID } from "node:crypto";
 import Order from "../models/order.model.js";
 import Product from "../models/product.model.js";
 import ApiError from "../utils/api-error.js";
@@ -39,6 +40,7 @@ const restoreInventoryAndCancelOrder = async (stripeSessionId) => {
 
       order.paymentStatus = "failed";
       order.status = "Cancelled";
+      order.checkoutCancelToken = undefined;
       await order.save({ session: databaseSession });
     });
   } finally {
@@ -81,17 +83,20 @@ const checkout = asyncHandler(async (req, res, next) => {
 
   const apiUrl = process.env.URL;
   const stripe = getStripe();
+  const cancelToken = randomUUID();
   const session = await stripe.checkout.sessions.create({
     mode: "payment",
     line_items: lineItems,
+    expires_at: Math.floor(Date.now() / 1000) + 30 * 60,
     client_reference_id: order.id,
     metadata: { orderId: order.id, userId: req.auth.id },
     success_url: `${apiUrl}/api/payment/success?session_id={CHECKOUT_SESSION_ID}`,
-    cancel_url: `${apiUrl}/api/payment/cancel`,
+    cancel_url: `${apiUrl}/api/payment/cancel?token=${cancelToken}`,
   });
 
   await Order.findByIdAndUpdate(order.id, {
     stripeSessionId: session.id,
+    checkoutCancelToken: cancelToken,
   });
 
   res.status(201).json({
@@ -108,13 +113,54 @@ const checkoutSuccess = (req, res) => {
     );
 };
 
-const checkoutCancel = (req, res) => {
+const checkoutCancel = asyncHandler(async (req, res, next) => {
+  const token = req.query.token;
+  if (!token || typeof token !== "string") {
+    return next(new ApiError("A valid cancellation token is required", 400));
+  }
+
+  const order = await Order.findOne({
+    checkoutCancelToken: token,
+    paymentStatus: "unpaid",
+    status: "Pending",
+  }).select("+checkoutCancelToken");
+
+  if (!order) {
+    return res
+      .status(200)
+      .send(
+        `<!doctype html><html><body><h1>Checkout already closed</h1><p>This checkout is no longer active.</p></body></html>`,
+      );
+  }
+
+  const stripe = getStripe();
+  const checkoutSession = await stripe.checkout.sessions.retrieve(
+    order.stripeSessionId,
+  );
+
+  if (
+    checkoutSession.status === "complete" ||
+    checkoutSession.payment_status === "paid"
+  ) {
+    return res
+      .status(200)
+      .send(
+        `<!doctype html><html><body><h1>Payment already completed</h1><p>Your order was not cancelled.</p></body></html>`,
+      );
+  }
+
+  if (checkoutSession.status === "open") {
+    await stripe.checkout.sessions.expire(order.stripeSessionId);
+  }
+
+  await restoreInventoryAndCancelOrder(order.stripeSessionId);
+
   res
     .status(200)
     .send(
-      `<!doctype html><html><body><h1>Payment cancelled</h1><p>No payment was made. You can return to checkout and try again.</p></body></html>`,
+      `<!doctype html><html><body><h1>Payment cancelled</h1></body></html>`,
     );
-};
+});
 
 const stripeWebhook = asyncHandler(async (req, res) => {
   if (!process.env.STRIPE_WEBHOOK_SECRET) {
