@@ -153,3 +153,4 @@ backend/uploads/
 scripts
 .vscode
 *.gz
+backups

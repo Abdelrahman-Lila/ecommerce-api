@@ -12,6 +12,8 @@ const authJWT = expressjwt({
     { url: /^\/api\/products(?:\/|$)/, methods: ["GET"] },
     "/api/users/login",
     "/api/users/register",
+    { url: "/api/payment/success", methods: ["GET"] },
+    { url: "/api/payment/cancel", methods: ["GET"] },
   ],
 });
 
