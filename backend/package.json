@@ -34,6 +34,7 @@
     "morgan": "^1.11.0",
     "multer": "^2.2.0",
     "slugify": "^1.6.9",
+    "stripe": "^22.4.0",
     "validator": "^13.15.35"
   },
   "devDependencies": {

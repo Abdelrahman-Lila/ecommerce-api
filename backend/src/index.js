@@ -18,6 +18,8 @@ import productsRouter from "./routes/product.route.js";
 import usersRouter from "./routes/user.route.js";
 import ordersRouter from "./routes/order.route.js";
 import adminRouter from "./routes/admin.route.js";
+import paymentRouter from "./routes/payment.route.js";
+import { stripeWebhook } from "./controllers/payment.controller.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -40,7 +42,7 @@ if (allowedCorsOrigins.length > 0) {
         );
       },
       methods: ["GET", "POST", "PUT", "DELETE"],
-      allowedHeaders: ["Authorization"],
+      allowedHeaders: ["Authorization", "Content-Type"],
     }),
   );
 }
@@ -50,6 +52,12 @@ app.set("trust proxy", 2);
 app.get("/api/health", (req, res) => {
   res.status(200).json({ status: "ok" });
 });
+
+app.post(
+  "/api/payment/webhook",
+  express.raw({ type: "application/json" }),
+  stripeWebhook,
+);
 
 app.use(express.json());
 app.use(
@@ -79,6 +87,7 @@ app.use("/api/products", productsRouter);
 
 app.use("/api/users", usersRouter);
 app.use("/api/orders", ordersRouter);
+app.use("/api/payment", paymentRouter);
 
 app.use("/api/admin/", adminRouter);
 

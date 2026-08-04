@@ -36,6 +36,21 @@ const orderSchema = new mongoose.Schema(
       required: true,
       min: [0, "Total price can't be negative"],
     },
+    paymentStatus: {
+      type: String,
+      enum: ["unpaid", "paid", "failed", "refunded"],
+      default: "unpaid",
+    },
+    stripeSessionId: {
+      type: String,
+      unique: true,
+      sparse: true,
+    },
+    stripePaymentIntentId: {
+      type: String,
+      unique: true,
+      sparse: true,
+    },
     user: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
