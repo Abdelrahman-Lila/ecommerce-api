@@ -51,6 +51,12 @@ const orderSchema = new mongoose.Schema(
       unique: true,
       sparse: true,
     },
+    checkoutCancelToken: {
+      type: String,
+      select: false,
+      unique: true,
+      sparse: true,
+    },
     user: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
