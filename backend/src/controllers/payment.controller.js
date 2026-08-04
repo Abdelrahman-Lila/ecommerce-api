@@ -14,6 +14,26 @@ const getStripe = () => {
   return new Stripe(process.env.STRIPE_SECRET_KEY);
 };
 
+const getPaymentUrls = (next) => {
+  const apiUrl = process.env.API_URL || process.env.URL;
+  const frontendUrl = process.env.FRONTEND_URL;
+
+  if (!apiUrl || !frontendUrl) {
+    next(
+      new ApiError(
+        "API_URL (or URL) and FRONTEND_URL must be configured for Checkout",
+        500,
+      ),
+    );
+    return null;
+  }
+
+  return {
+    apiUrl: apiUrl.replace(/\/$/, ""),
+    frontendUrl: frontendUrl.replace(/\/$/, ""),
+  };
+};
+
 const restoreInventoryAndCancelOrder = async (stripeSessionId) => {
   const databaseSession = await Order.startSession();
 
@@ -81,7 +101,9 @@ const checkout = asyncHandler(async (req, res, next) => {
     };
   });
 
-  const apiUrl = process.env.URL;
+  const paymentUrls = getPaymentUrls(next);
+  if (!paymentUrls) return;
+
   const stripe = getStripe();
   const cancelToken = randomUUID();
   const session = await stripe.checkout.sessions.create({
@@ -90,8 +112,8 @@ const checkout = asyncHandler(async (req, res, next) => {
     expires_at: Math.floor(Date.now() / 1000) + 30 * 60,
     client_reference_id: order.id,
     metadata: { orderId: order.id, userId: req.auth.id },
-    success_url: `${apiUrl}/api/payment/success?session_id={CHECKOUT_SESSION_ID}`,
-    cancel_url: `${apiUrl}/api/payment/cancel?token=${cancelToken}`,
+    success_url: `${paymentUrls.frontendUrl}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
+    cancel_url: `${paymentUrls.apiUrl}/api/payment/cancel?token=${cancelToken}`,
   });
 
   await Order.findByIdAndUpdate(order.id, {
@@ -105,12 +127,15 @@ const checkout = asyncHandler(async (req, res, next) => {
   });
 });
 
-const checkoutSuccess = (req, res) => {
-  res
-    .status(200)
-    .send(
-      `<!doctype html><html><body><h1>Payment complete</h1><p>Thank you. Your payment was completed.</p></body></html>`,
-    );
+const checkoutSuccess = (req, res, next) => {
+  const paymentUrls = getPaymentUrls(next);
+  if (!paymentUrls) return;
+
+  const sessionId =
+    typeof req.query.session_id === "string" ? req.query.session_id : "";
+  res.redirect(
+    `${paymentUrls.frontendUrl}/checkout/success?session_id=${encodeURIComponent(sessionId)}`,
+  );
 };
 
 const checkoutCancel = asyncHandler(async (req, res, next) => {
@@ -126,11 +151,11 @@ const checkoutCancel = asyncHandler(async (req, res, next) => {
   }).select("+checkoutCancelToken");
 
   if (!order) {
-    return res
-      .status(200)
-      .send(
-        `<!doctype html><html><body><h1>Checkout already closed</h1><p>This checkout is no longer active.</p></body></html>`,
-      );
+    const paymentUrls = getPaymentUrls(next);
+    if (!paymentUrls) return;
+    return res.redirect(
+      `${paymentUrls.frontendUrl}/checkout/cancel?state=closed`,
+    );
   }
 
   const stripe = getStripe();
@@ -142,11 +167,11 @@ const checkoutCancel = asyncHandler(async (req, res, next) => {
     checkoutSession.status === "complete" ||
     checkoutSession.payment_status === "paid"
   ) {
-    return res
-      .status(200)
-      .send(
-        `<!doctype html><html><body><h1>Payment already completed</h1><p>Your order was not cancelled.</p></body></html>`,
-      );
+    const paymentUrls = getPaymentUrls(next);
+    if (!paymentUrls) return;
+    return res.redirect(
+      `${paymentUrls.frontendUrl}/checkout/success?session_id=${encodeURIComponent(order.stripeSessionId)}`,
+    );
   }
 
   if (checkoutSession.status === "open") {
@@ -155,11 +180,23 @@ const checkoutCancel = asyncHandler(async (req, res, next) => {
 
   await restoreInventoryAndCancelOrder(order.stripeSessionId);
 
-  res
-    .status(200)
-    .send(
-      `<!doctype html><html><body><h1>Payment cancelled</h1></body></html>`,
-    );
+  const paymentUrls = getPaymentUrls(next);
+  if (!paymentUrls) return;
+  res.redirect(`${paymentUrls.frontendUrl}/checkout/cancel`);
+});
+
+const getCheckoutOrder = asyncHandler(async (req, res, next) => {
+  const order = await Order.findOne({
+    stripeSessionId: req.params.sessionId,
+    user: req.auth.id,
+  }).populate({
+    path: "orderItems",
+    populate: { path: "product", select: "title" },
+  });
+
+  if (!order) return next(new ApiError("Checkout order not found", 404));
+
+  res.status(200).json({ status: "success", data: order });
 });
 
 const stripeWebhook = asyncHandler(async (req, res) => {
@@ -226,4 +263,10 @@ const stripeWebhook = asyncHandler(async (req, res) => {
   res.status(200).json({ received: true });
 });
 
-export { checkout, checkoutSuccess, checkoutCancel, stripeWebhook };
+export {
+  checkout,
+  checkoutSuccess,
+  checkoutCancel,
+  getCheckoutOrder,
+  stripeWebhook,
+};
