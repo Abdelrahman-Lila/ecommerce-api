@@ -100,7 +100,14 @@ export const customerRoutes = [
     area: "Cart and checkout",
     title: "Order confirmed",
     description:
-      "A protected confirmation page for a recently submitted order.",
+      "A protected confirmation page that verifies the Stripe payment result.",
+  },
+  {
+    path: "/checkout/cancel",
+    area: "Cart and checkout",
+    title: "Payment cancelled",
+    description:
+      "A protected page shown after Checkout cancels and inventory is restored.",
   },
   {
     path: "/orders",

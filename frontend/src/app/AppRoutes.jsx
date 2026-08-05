@@ -23,6 +23,7 @@ import {
 import CartPage from "../features/cart/pages/CartPage.jsx";
 import CheckoutPage from "../features/checkout/pages/CheckoutPage.jsx";
 import CheckoutSuccessPage from "../features/checkout/pages/CheckoutSuccessPage.jsx";
+import CheckoutCancelPage from "../features/checkout/pages/CheckoutCancelPage.jsx";
 import OrdersPage from "../features/orders/pages/OrdersPage.jsx";
 import LoadingState from "../components/ui/LoadingState.jsx";
 
@@ -81,6 +82,7 @@ export default function AppRoutes() {
           <Route element={<RequireCustomer />}>
             <Route path="checkout" element={<CheckoutPage />} />
             <Route path="checkout/success" element={<CheckoutSuccessPage />} />
+            <Route path="checkout/cancel" element={<CheckoutCancelPage />} />
             <Route path="orders" element={<OrdersPage />} />
           </Route>
         </Route>

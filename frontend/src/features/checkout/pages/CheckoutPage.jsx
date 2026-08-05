@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import { useMutation } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useNavigate } from "react-router";
@@ -12,7 +13,8 @@ import Badge from "../../../components/ui/Badge.jsx";
 import { useAuthSession } from "../../auth/hooks/useAuthSession.js";
 import { useCart } from "../../cart/hooks/useCart.js";
 import { useCreateOrderMutation } from "../../orders/hooks/useOrderMutations.js";
-import { saveLatestOrderConfirmation } from "../lib/confirmationStorage.js";
+import { createCheckoutSession } from "../api/payment.api.js";
+import { saveActiveCheckoutSession } from "../lib/checkoutStorage.js";
 import {
   checkoutDefaultValues,
   checkoutSchema,
@@ -22,8 +24,9 @@ import CheckoutSummary from "../components/CheckoutSummary.jsx";
 export default function CheckoutPage() {
   const navigate = useNavigate();
   const session = useAuthSession();
-  const { items, subtotal, clearCart } = useCart();
+  const { items, subtotal } = useCart();
   const createOrderMutation = useCreateOrderMutation();
+  const checkoutMutation = useMutation({ mutationFn: createCheckoutSession });
 
   const orderItems = useMemo(
     () =>
@@ -51,21 +54,11 @@ export default function CheckoutPage() {
 
     try {
       const result = await createOrderMutation.mutateAsync(payload);
+      const orderId = result?._id ?? result?.id;
+      const checkout = await checkoutMutation.mutateAsync(orderId);
 
-      if (result) {
-        saveLatestOrderConfirmation({
-          ...result,
-          lineItems: items.map((item) => ({
-            id: item.id,
-            title: item.title,
-            price: item.price,
-            quantity: item.quantity,
-            image: item.image,
-          })),
-        });
-        clearCart();
-        navigate("/checkout/success", { replace: true });
-      }
+      saveActiveCheckoutSession(checkout.sessionId);
+      window.location.assign(checkout.checkoutUrl);
     } catch {
       // Mutation state already captures the API error for the UI.
     }
@@ -84,10 +77,16 @@ export default function CheckoutPage() {
     );
   }
 
-  if (createOrderMutation.isPending) {
+  if (createOrderMutation.isPending || checkoutMutation.isPending) {
     return (
       <PageShell className="py-8 sm:py-10">
-        <LoadingState label="Placing order" />
+        <LoadingState
+          label={
+            checkoutMutation.isPending
+              ? "Opening secure payment"
+              : "Creating your order"
+          }
+        />
       </PageShell>
     );
   }
@@ -97,12 +96,12 @@ export default function CheckoutPage() {
       <div className="space-y-3">
         <Badge variant="primary">Checkout</Badge>
         <h1 className="text-3xl font-semibold tracking-tight text-[var(--text)] sm:text-4xl">
-          Submit your order
+          Continue to payment
         </h1>
         <p className="text-sm text-[var(--muted)]">
           {session.isAuthenticated
             ? "You are signed in and ready to place the order."
-            : "Authentication is required to complete checkout."}
+            : "Your order will be created before secure payment opens."}
         </p>
       </div>
 
@@ -138,16 +137,19 @@ export default function CheckoutPage() {
             {...register("phone")}
           />
 
-          {createOrderMutation.isError ? (
+          {createOrderMutation.isError || checkoutMutation.isError ? (
             <ErrorState
-              error={createOrderMutation.error}
-              title="Could not place order"
+              error={createOrderMutation.error ?? checkoutMutation.error}
+              title="Could not start secure payment"
             />
           ) : null}
 
           <div className="flex flex-wrap gap-3">
-            <Button type="submit" disabled={createOrderMutation.isPending}>
-              Place order
+            <Button
+              type="submit"
+              disabled={createOrderMutation.isPending || checkoutMutation.isPending}
+            >
+              Continue to payment
             </Button>
             <Button
               variant="secondary"
